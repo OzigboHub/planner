@@ -13,14 +13,16 @@ import {
   PenTool,
   Save,
   MessageSquare,
+  Lock,
 } from "lucide-react";
 
 export const ApprovalsCenter: React.FC = () => {
-  const { decisions, updateDecision, userRole } = usePlanner();
+  const { decisions, updateDecision, userRole, canEdit } = usePlanner();
 
   const [notesState, setNotesState] = useState<{ [id: string]: string }>({});
 
   const handleStatusChange = (id: string, status: FamilyDecision["status"]) => {
+    if (!canEdit) return;
     updateDecision(id, status, notesState[id]);
   };
 
@@ -68,23 +70,39 @@ export const ApprovalsCenter: React.FC = () => {
 
               {/* Status Selector */}
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                {(["Approved", "Revise", "Not approved"] as FamilyDecision["status"][]).map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => handleStatusChange(dec.id, st)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      dec.status === st
-                        ? st === "Approved"
-                          ? "bg-emerald-600 text-white shadow-md"
-                          : st === "Revise"
-                          ? "bg-amber-500 text-slate-950 shadow-md"
-                          : "bg-rose-600 text-white shadow-md"
-                        : "bg-slate-800 text-slate-400 hover:text-white"
+                {canEdit ? (
+                  (["Approved", "Revise", "Not approved"] as FamilyDecision["status"][]).map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => handleStatusChange(dec.id, st)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        dec.status === st
+                          ? st === "Approved"
+                            ? "bg-emerald-600 text-white shadow-md"
+                            : st === "Revise"
+                            ? "bg-amber-500 text-slate-950 shadow-md"
+                            : "bg-rose-600 text-white shadow-md"
+                          : "bg-slate-800 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {st === "Approved" ? "✓ Approved" : st}
+                    </button>
+                  ))
+                ) : (
+                  <span
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 cursor-default ${
+                      dec.status === "Approved"
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : dec.status === "Revise"
+                        ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                        : "bg-rose-500/10 text-rose-300 border-rose-500/20"
                     }`}
+                    title="View-Only: Committee Council sign-off required"
                   >
-                    {st === "Approved" ? "✓ Approved" : st}
-                  </button>
-                ))}
+                    <Lock className="w-3 h-3 text-amber-400" />
+                    <span>{dec.status === "Approved" ? "✓ Approved" : dec.status}</span>
+                  </span>
+                )}
               </div>
             </div>
 
@@ -117,8 +135,8 @@ export const ApprovalsCenter: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="bg-slate-950 p-3.5 rounded-xl border border-white/5 space-y-1">
             <span className="text-slate-400 text-[11px]">Authorized Approvers:</span>
-            <p className="font-bold text-white">Dr. Osas Akhabue (Diaspora Lead) & Barr. Jude Akhabue (Treasurer)</p>
-            <p className="text-slate-400 text-[10px]">On behalf of all siblings and Eidenu, Irrua elders council</p>
+            <p className="font-bold text-white">Uwade Akhabue & Otibhor Akhabue (Committee & Treasury Leads)</p>
+            <p className="text-slate-400 text-[10px]">On behalf of all 6 siblings and Eidenu, Irrua council</p>
           </div>
 
           <div className="bg-slate-950 p-3.5 rounded-xl border border-white/5 space-y-1">

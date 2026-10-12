@@ -13,10 +13,11 @@ import {
   Filter,
   Briefcase,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 
 export const WorkstreamsTasks: React.FC = () => {
-  const { tasks, addTask, updateTask, deleteTask } = usePlanner();
+  const { tasks, addTask, updateTask, deleteTask, canEdit } = usePlanner();
 
   const [selectedWorkstream, setSelectedWorkstream] = useState<string>("All");
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -49,6 +50,7 @@ export const WorkstreamsTasks: React.FC = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!title.trim() || !assignee.trim()) return;
 
     addTask({
@@ -68,6 +70,7 @@ export const WorkstreamsTasks: React.FC = () => {
   };
 
   const toggleTaskStatus = (t: TaskItem) => {
+    if (!canEdit) return;
     const nextStatus: TaskItem["status"] =
       t.status === "To Do"
         ? "In Progress"
@@ -93,13 +96,20 @@ export const WorkstreamsTasks: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-md w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Assign New Task</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-md w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Assign New Task</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium w-fit">
+            <Eye className="w-4 h-4 text-amber-400" />
+            <span>View-Only Tasks</span>
+          </div>
+        )}
       </div>
 
       {/* Workstream Filter Tabs */}
@@ -151,18 +161,33 @@ export const WorkstreamsTasks: React.FC = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => toggleTaskStatus(t)}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors ${
-                    isDone
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : isInProgress
-                      ? "bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-amber-500/20"
-                      : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
-                  }`}
-                >
-                  {t.status}
-                </button>
+                {canEdit ? (
+                  <button
+                    onClick={() => toggleTaskStatus(t)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors ${
+                      isDone
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : isInProgress
+                        ? "bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-amber-500/20"
+                        : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
+                    }`}
+                  >
+                    {t.status}
+                  </button>
+                ) : (
+                  <span
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border cursor-default ${
+                      isDone
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : isInProgress
+                        ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                        : "bg-slate-800 text-slate-300 border-slate-700"
+                    }`}
+                    title="View-Only: Status changes require edit permission"
+                  >
+                    {t.status}
+                  </span>
+                )}
               </div>
 
               <h3

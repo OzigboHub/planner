@@ -161,7 +161,7 @@ export const PrintableReport: React.FC = () => {
                   </span>
                   <div>
                     <p className="font-bold text-white text-xs">{act.activity}</p>
-                    <p className="text-[11px] text-slate-400">{act.location} • Lead: {act.coordinator}</p>
+                    <p className="text-[11px] text-slate-400">{act.location}</p>
                   </div>
                 </div>
 
@@ -182,33 +182,33 @@ export const PrintableReport: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
             <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
               <span className="text-[10px] text-slate-400 uppercase block">Event Coordination</span>
-              <p className="font-bold text-white">Dr. Osas Akhabue</p>
+              <p className="font-bold text-white">Uwade Akhabue</p>
               <p className="text-slate-400 text-[11px]">{settings.contactPhone}</p>
             </div>
             <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
               <span className="text-[10px] text-slate-400 uppercase block">Treasurer & Records</span>
-              <p className="font-bold text-white">Barr. Jude Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 802 334 4556</p>
+              <p className="font-bold text-white">Otibhor Akhabue</p>
+              <p className="text-slate-400 text-[11px]">+234 802 345 6789</p>
             </div>
             <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
               <span className="text-[10px] text-slate-400 uppercase block">Mortuary & Escort</span>
-              <p className="font-bold text-white">Uncle Patrick</p>
-              <p className="text-slate-400 text-[11px]">+234 805 112 3344</p>
+              <p className="font-bold text-white">Oziegbe E Akhabue</p>
+              <p className="text-slate-400 text-[11px]">+234 807 567 8901</p>
             </div>
             <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Food & Kitchen</span>
-              <p className="font-bold text-white">Aunty Blessing</p>
-              <p className="text-slate-400 text-[11px]">+234 803 778 9911</p>
+              <span className="text-[10px] text-slate-400 uppercase block">Food & Hospitality</span>
+              <p className="font-bold text-white">Odion Akhabue</p>
+              <p className="text-slate-400 text-[11px]">+234 809 678 9012</p>
             </div>
             <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Drinks & Ice Logistics</span>
-              <p className="font-bold text-white">Brother Efe Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 814 665 4433</p>
+              <span className="text-[10px] text-slate-400 uppercase block">Church & Liturgy</span>
+              <p className="font-bold text-white">Omozele Akhabue</p>
+              <p className="text-slate-400 text-[11px]">+234 805 456 7890</p>
             </div>
             <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
               <span className="text-[10px] text-slate-400 uppercase block">Residence Renovation</span>
-              <p className="font-bold text-white">Engr. Kenneth Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 806 889 0012</p>
+              <p className="font-bold text-white">Akhere Akhabue</p>
+              <p className="text-slate-400 text-[11px]">+234 814 789 0123</p>
             </div>
           </div>
         </div>

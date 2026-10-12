@@ -12,10 +12,11 @@ import {
   Clock,
   Calendar,
   Building,
+  Eye,
 } from "lucide-react";
 
 export const VendorsTracker: React.FC = () => {
-  const { vendors, addVendor, updateVendor } = usePlanner();
+  const { vendors, addVendor, updateVendor, canEdit } = usePlanner();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [vendorName, setVendorName] = useState("");
@@ -28,6 +29,7 @@ export const VendorsTracker: React.FC = () => {
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!vendorName.trim() || !quote) return;
 
     const q = Number(quote) || 0;
@@ -72,13 +74,20 @@ export const VendorsTracker: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Register Vendor</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Register Vendor</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium w-fit">
+            <Eye className="w-4 h-4 text-blue-400" />
+            <span>View-Only Vendor Directory</span>
+          </div>
+        )}
       </div>
 
       {/* Vendors Grid */}
@@ -146,7 +155,7 @@ export const VendorsTracker: React.FC = () => {
 
             <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
               <span>Confirmed: {v.confirmationDate || "Pending"}</span>
-              {v.bookingStatus !== "Confirmed" && (
+              {canEdit && v.bookingStatus !== "Confirmed" && (
                 <button
                   onClick={() => updateVendor(v.id, { bookingStatus: "Confirmed" })}
                   className="px-2 py-0.5 rounded bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 text-[10px] font-semibold"

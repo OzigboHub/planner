@@ -12,20 +12,21 @@ import {
   CheckCircle,
   Plus,
   MapPin,
-  User,
 } from "lucide-react";
 
 export const ProgrammeEditor: React.FC = () => {
-  const { programme, updateProgrammeItem, addProgrammeItem } = usePlanner();
+  const { programme, updateProgrammeItem, addProgrammeItem, canEdit } = usePlanner();
 
   const [editItem, setEditItem] = useState<ProgrammeActivity | null>(null);
 
   const togglePublic = (p: ProgrammeActivity) => {
+    if (!canEdit) return;
     updateProgrammeItem(p.id, { publicVisible: !p.publicVisible });
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!editItem) return;
 
     updateProgrammeItem(editItem.id, editItem);
@@ -86,15 +87,9 @@ export const ProgrammeEditor: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 pt-1">
-                  <div className="flex items-center gap-1.5 text-slate-300">
-                    <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                    <span>{act.location}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-400">
-                    <User className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                    <span>Lead: {act.coordinator}</span>
-                  </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-300 pt-1">
+                  <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span>{act.location}</span>
                 </div>
 
                 {act.notes && (
@@ -107,25 +102,40 @@ export const ProgrammeEditor: React.FC = () => {
 
             {/* Actions */}
             <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-800 flex-shrink-0">
-              <button
-                onClick={() => togglePublic(act)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
-                  act.publicVisible
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                    : "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
-                }`}
-              >
-                {act.publicVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                <span>{act.publicVisible ? "Public Visible" : "Hidden (Draft)"}</span>
-              </button>
+              {canEdit ? (
+                <>
+                  <button
+                    onClick={() => togglePublic(act)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
+                      act.publicVisible
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                        : "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
+                    }`}
+                  >
+                    {act.publicVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    <span>{act.publicVisible ? "Public Visible" : "Hidden (Draft)"}</span>
+                  </button>
 
-              <button
-                onClick={() => setEditItem(act)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-colors"
-              >
-                <Edit2 className="w-3 h-3 text-amber-400" />
-                <span>Edit Activity</span>
-              </button>
+                  <button
+                    onClick={() => setEditItem(act)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-colors"
+                  >
+                    <Edit2 className="w-3 h-3 text-amber-400" />
+                    <span>Edit Activity</span>
+                  </button>
+                </>
+              ) : (
+                <span
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border cursor-default ${
+                    act.publicVisible
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-slate-800 text-slate-400 border-slate-700"
+                  }`}
+                >
+                  {act.publicVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                  <span>{act.publicVisible ? "Public Visible" : "Draft"}</span>
+                </span>
+              )}
             </div>
           </div>
         ))}

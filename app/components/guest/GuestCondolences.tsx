@@ -3,16 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePlanner } from "../../context/PlannerContext";
 import {
-  Heart,
   Flame,
-  Send,
-  Sparkles,
-  CheckCircle2,
-  Clock,
-  MapPin,
-  Quote,
-  ShieldCheck,
-  BookOpen,
   Trash2,
   ChevronDown,
   ChevronUp,
@@ -147,8 +138,7 @@ export const GuestCondolences: React.FC = () => {
       {/* Header with Live Stats from Database */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-white/10 gap-4">
         <div>
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold uppercase tracking-wider mb-2">
-            <Heart className="w-3.5 h-3.5 fill-rose-400 text-rose-400" />
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Living Memorial & Guestbook</span>
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-serif">
@@ -160,12 +150,10 @@ export const GuestCondolences: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 font-medium">
-            <Flame className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
+          <div className="px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 font-medium">
             <span><strong>{candleCount}</strong> Memorial Candles</span>
           </div>
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium">
-            <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+          <div className="px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium">
             <span><strong>{tributes.length}</strong> Tributes Logged</span>
           </div>
         </div>
@@ -174,8 +162,7 @@ export const GuestCondolences: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Real Submission Form (Saved to Database) */}
         <div className="lg:col-span-5 bg-slate-900/90 backdrop-blur-md rounded-3xl p-6 sm:p-7 border border-white/10 shadow-2xl sticky top-24">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4 text-amber-400" />
+          <div className="mb-1">
             <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
               Write & Publish Your Tribute
             </h3>
@@ -185,8 +172,7 @@ export const GuestCondolences: React.FC = () => {
           </p>
 
           {successMessage && (
-            <div className="p-3.5 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-start gap-2.5 animate-fadeIn">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div className="p-3.5 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs animate-fadeIn">
               <span>{successMessage}</span>
             </div>
           )}
@@ -208,7 +194,7 @@ export const GuestCondolences: React.FC = () => {
                 required
                 value={authorName}
                 onChange={(e) => setAuthorName(e.target.value)}
-                placeholder="e.g. Dr. Osas Akhabue or Chief Anthony Igbinedion"
+                placeholder="e.g. Uwade Akhabue or Chief Anthony Igbinedion"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400"
               />
             </div>
@@ -250,7 +236,7 @@ export const GuestCondolences: React.FC = () => {
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Share your prayers, memories, and words of honor celebrating the exemplary life of Pa Festus Okoruwa Akhabue..."
+                placeholder="Share your prayers, memories, and words of honor celebrating the exemplary life of Festus Okoruwa Akhabue..."
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 resize-none leading-relaxed"
               />
             </div>
@@ -272,18 +258,12 @@ export const GuestCondolences: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-lg shadow-amber-500/20 text-center disabled:opacity-50"
             >
               {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                  <span>Saving to Database...</span>
-                </>
+                <span>Saving to Database...</span>
               ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  <span>Publish Tribute to Memorial Book</span>
-                </>
+                <span>Publish Tribute to Memorial Book</span>
               )}
             </button>
           </form>
@@ -302,12 +282,9 @@ export const GuestCondolences: React.FC = () => {
             </div>
           ) : tributes.length === 0 ? (
             <div className="p-8 sm:p-12 rounded-3xl bg-slate-900/60 border border-slate-800 text-center text-slate-300 shadow-xl space-y-3">
-              <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-2">
-                <BookOpen className="w-7 h-7" />
-              </div>
               <h4 className="text-lg font-bold text-white">The Memorial Book is Open</h4>
               <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-                Be the first family member or well-wisher to write and publish a tribute celebrating the blessed memory of Pa Festus Okoruwa Akhabue.
+                Be the first family member or well-wisher to write and publish a tribute celebrating the blessed memory of Festus Okoruwa Akhabue.
               </p>
             </div>
           ) : (
@@ -332,8 +309,7 @@ export const GuestCondolences: React.FC = () => {
                             {t.author_name}
                           </h4>
                           {t.is_pinned === 1 && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold flex items-center gap-1">
-                              <ShieldCheck className="w-3 h-3 text-amber-400" />
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
                               Official
                             </span>
                           )}
@@ -341,16 +317,10 @@ export const GuestCondolences: React.FC = () => {
                         <p className="text-xs text-amber-300/90 font-medium mt-0.5">
                           {t.relationship}
                         </p>
-                        <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-emerald-400" />
-                            {t.location}
-                          </span>
+                        <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1">
+                          <span>{t.location}</span>
                           <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-500" />
-                            {t.created_at}
-                          </span>
+                          <span>{t.created_at}</span>
                         </div>
                       </div>
                     </div>

@@ -12,10 +12,11 @@ import {
   Tag,
   Receipt,
   Search,
+  Eye,
 } from "lucide-react";
 
 export const PurchasingList: React.FC = () => {
-  const { shoppingList, addShoppingItem, updateShoppingItem } = usePlanner();
+  const { shoppingList, addShoppingItem, updateShoppingItem, canEdit } = usePlanner();
 
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -38,6 +39,7 @@ export const PurchasingList: React.FC = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!item.trim() || !estimatedPrice) return;
 
     addShoppingItem({
@@ -75,13 +77,20 @@ export const PurchasingList: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Procurement Item</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Procurement Item</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium w-fit">
+            <Eye className="w-4 h-4 text-purple-400" />
+            <span>View-Only Shopping List</span>
+          </div>
+        )}
       </div>
 
       {/* Summary KPI Cards */}
@@ -170,7 +179,7 @@ export const PurchasingList: React.FC = () => {
                   </td>
 
                   <td className="py-3 px-4 text-right">
-                    {s.status !== "Purchased" && (
+                    {canEdit && s.status !== "Purchased" ? (
                       <button
                         onClick={() =>
                           updateShoppingItem(s.id, {
@@ -182,6 +191,8 @@ export const PurchasingList: React.FC = () => {
                       >
                         Mark Purchased
                       </button>
+                    ) : (
+                      <span className="text-[10px] text-slate-500 font-mono">—</span>
                     )}
                   </td>
                 </tr>

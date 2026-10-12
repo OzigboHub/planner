@@ -15,6 +15,7 @@ import {
   DollarSign,
   TrendingDown,
   Info,
+  Eye,
 } from "lucide-react";
 
 export const BudgetManager: React.FC = () => {
@@ -26,6 +27,7 @@ export const BudgetManager: React.FC = () => {
     deleteBudgetItem,
     financialMetrics,
     settings,
+    canEdit,
   } = usePlanner();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,6 +67,7 @@ export const BudgetManager: React.FC = () => {
 
   const handleCreateItem = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!newItemName.trim() || !newItemAllowance) return;
 
     addBudgetItem({
@@ -86,6 +89,7 @@ export const BudgetManager: React.FC = () => {
 
   const handleRecordPayment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!paymentModalItem || !paymentAmount) return;
 
     recordBudgetPayment(paymentModalItem.id, Number(paymentAmount));
@@ -109,13 +113,20 @@ export const BudgetManager: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Expense Item</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Expense Item</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium w-fit">
+            <Eye className="w-4 h-4 text-amber-400" />
+            <span>View-Only Ledger (Read-Only)</span>
+          </div>
+        )}
       </div>
 
       {/* Financial Formula Breakdown Card (From PDF Section 6) */}
@@ -269,15 +280,19 @@ export const BudgetManager: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
-                      <button
-                        onClick={() => {
-                          setPaymentModalItem(item);
-                          setPaymentAmount("");
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-[11px] font-medium transition-colors"
-                      >
-                        Record Pay
-                      </button>
+                      {canEdit ? (
+                        <button
+                          onClick={() => {
+                            setPaymentModalItem(item);
+                            setPaymentAmount("");
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-[11px] font-medium transition-colors"
+                        >
+                          Record Pay
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-slate-500 font-mono">View Only</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -417,7 +432,7 @@ export const BudgetManager: React.FC = () => {
                   type="text"
                   value={newItemLead}
                   onChange={(e) => setNewItemLead(e.target.value)}
-                  placeholder="e.g. Uncle Patrick"
+                  placeholder="e.g. Uwade Akhabue"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-blue-400"
                 />
               </div>

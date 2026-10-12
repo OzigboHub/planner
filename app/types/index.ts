@@ -2,6 +2,7 @@ export type UserRole = "admin" | "sibling" | "guest";
 
 export type DashboardSection =
   | "overview"
+  | "children"
   | "budget"
   | "contributions"
   | "tasks"
@@ -35,6 +36,7 @@ export interface BudgetItem {
   assignedLead?: string;
   notes?: string;
   receiptUrl?: string;
+  isDone?: boolean;
 }
 
 export interface Contribution {
@@ -190,3 +192,23 @@ export interface EventSettings {
   contactPhone: string;
   contactEmail: string;
 }
+
+export type PermissionLevel = "view_only" | "view_and_edit";
+
+export interface FamilyMember {
+  id: string;
+  name: string;
+  relationship: string; // e.g. "1st Sibling • Eldest Son", "2nd Sibling", "Daughter", "Grandchild"
+  branch?: string; // e.g. "Diaspora (United Kingdom)", "Lagos", "Benin City", "Abuja", "Warri", "Port Harcourt", "Irrua Home"
+  phone?: string;
+  email?: string;
+  location?: string;
+  assignedRole?: string; // e.g. "Diaspora Advisory Lead", "Committee Treasurer", "Church Liturgy"
+  loginCode: string; // Unique access code created by Admin (e.g. "OSAS-2026", "JUDE-2026")
+  status: "Active" | "Pending" | "Invited";
+  permission: PermissionLevel; // Default: "view_only", Admin-controlled: "view_and_edit"
+  createdAt: string;
+  lastLogin?: string;
+  notes?: string;
+}
+

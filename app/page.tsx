@@ -6,25 +6,28 @@ import { Navbar } from "./components/Navbar";
 import { GuestView } from "./components/guest/GuestView";
 import { FamilyDashboard } from "./components/dashboard/FamilyDashboard";
 import { FamilyLoginModal } from "./components/auth/FamilyLoginModal";
-import { Lock } from "lucide-react";
+import { ShareInvitationModal } from "./components/share/ShareInvitationModal";
 
 function PlannerApp() {
   const { currentView, isFamilyAuthenticated } = usePlanner();
 
   return (
     <div className="min-h-screen flex flex-col bg-[#080c15] text-slate-100">
-      {/* Top Navigation Bar with View Switcher, Role, & Countdown */}
+      {/* Top Navigation Bar with Planning button, view switcher & countdown */}
       <Navbar />
 
-      {/* Conditional View: Planning is strictly gated behind isFamilyAuthenticated */}
-      {!isFamilyAuthenticated || currentView === "guest" ? (
-        <GuestView />
-      ) : (
+      {/* Main View: Shows FamilyDashboard (SimplePlannerView) when authenticated & in planning view. Otherwise GuestView */}
+      {isFamilyAuthenticated && currentView === "family" ? (
         <FamilyDashboard />
+      ) : (
+        <GuestView />
       )}
 
-      {/* Children & Planning Committee Login Modal */}
+      {/* Planning Login Modal (opens when user clicks Planning button) */}
       <FamilyLoginModal />
+
+      {/* Guest Invitation & Sharing Modal */}
+      <ShareInvitationModal />
     </div>
   );
 }

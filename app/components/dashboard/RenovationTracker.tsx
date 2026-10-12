@@ -12,6 +12,7 @@ import {
   Clock,
   ShieldCheck,
   TrendingUp,
+  Eye,
 } from "lucide-react";
 
 export const RenovationTracker: React.FC = () => {
@@ -20,6 +21,7 @@ export const RenovationTracker: React.FC = () => {
     addRenovationItem,
     updateRenovationItem,
     settings,
+    canEdit,
   } = usePlanner();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -40,6 +42,7 @@ export const RenovationTracker: React.FC = () => {
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!itemTitle.trim() || !materialsQuote) return;
 
     const mat = Number(materialsQuote) || 0;
@@ -84,13 +87,20 @@ export const RenovationTracker: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Repair Item</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Repair Item</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium w-fit">
+            <Eye className="w-4 h-4 text-purple-400" />
+            <span>View-Only Tracker</span>
+          </div>
+        )}
       </div>
 
       {/* Cap Consumption & Progress Banner */}
@@ -209,18 +219,22 @@ export const RenovationTracker: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const next = Math.min(100, reno.progressPercent + 20);
-                    updateRenovationItem(reno.id, {
-                      progressPercent: next,
-                      status: next === 100 ? "Completed" : "In Progress",
-                    });
-                  }}
-                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium transition-colors"
-                >
-                  +20% Progress
-                </button>
+                {canEdit ? (
+                  <button
+                    onClick={() => {
+                      const next = Math.min(100, reno.progressPercent + 20);
+                      updateRenovationItem(reno.id, {
+                        progressPercent: next,
+                        status: next === 100 ? "Completed" : "In Progress",
+                      });
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium transition-colors"
+                  >
+                    +20% Progress
+                  </button>
+                ) : (
+                  <span className="text-[10px] text-slate-500 font-mono">Sign-Off Required</span>
+                )}
               </div>
             </div>
           </div>

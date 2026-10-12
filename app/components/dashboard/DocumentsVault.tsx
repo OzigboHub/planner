@@ -12,10 +12,11 @@ import {
   User,
   ShieldCheck,
   CheckCircle,
+  Eye,
 } from "lucide-react";
 
 export const DocumentsVault: React.FC = () => {
-  const { documents, addDocument } = usePlanner();
+  const { documents, addDocument, canEdit } = usePlanner();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -26,6 +27,7 @@ export const DocumentsVault: React.FC = () => {
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!title.trim() || !uploadedBy.trim()) return;
 
     addDocument({
@@ -64,13 +66,20 @@ export const DocumentsVault: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Upload Receipt / Slip</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Upload Receipt / Slip</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium w-fit">
+            <Eye className="w-4 h-4 text-emerald-400" />
+            <span>View-Only Vault</span>
+          </div>
+        )}
       </div>
 
       {/* Documents Grid */}
@@ -187,7 +196,7 @@ export const DocumentsVault: React.FC = () => {
                   required
                   value={uploadedBy}
                   onChange={(e) => setUploadedBy(e.target.value)}
-                  placeholder="e.g. Barr. Jude"
+                  placeholder="e.g. Otibhor Akhabue or Uwade Akhabue"
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-400"
                 />
               </div>

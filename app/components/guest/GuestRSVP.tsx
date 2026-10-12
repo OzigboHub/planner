@@ -50,7 +50,7 @@ export const GuestRSVP: React.FC = () => {
             Guest RSVP
           </h2>
           <p className="text-sm text-slate-300 leading-relaxed">
-            We will be deeply honored by your presence to celebrate the blessed life and legacy of our dear father, <strong>Pa Festus Okoruwa Akhabue</strong>.
+            We will be deeply honored by your presence to celebrate the blessed life and legacy of our dear father, <strong>Festus Okoruwa Akhabue</strong>.
           </p>
           <p className="text-xs text-slate-400 leading-relaxed">
             Kindly confirm your attendance using the form so our reception team can ensure you and your accompanying guests are warmly welcomed and comfortably accommodated in Eidenu, Irrua.

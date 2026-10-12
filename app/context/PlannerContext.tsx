@@ -17,6 +17,8 @@ import {
   EventSettings,
   UserRole,
   DashboardSection,
+  FamilyMember,
+  PermissionLevel,
 } from "../types";
 import {
   initialEventSettings,
@@ -32,6 +34,7 @@ import {
   initialRSVPs,
   initialCondolences,
   initialAuditLogs,
+  initialFamilyMembers,
 } from "../data/initialData";
 
 interface PlannerContextType {
@@ -43,14 +46,35 @@ interface PlannerContextType {
   dashboardSection: DashboardSection;
   setDashboardSection: (sec: DashboardSection) => void;
 
-  // Family Authentication (Private Session Gate)
+  // Family Authentication & Permission Enforcement
   isFamilyAuthenticated: boolean;
   authenticatedMember: string | null;
+  authenticatedMemberId: string | null;
+  authenticatedPhone: string | null;
+  userPermission: PermissionLevel;
+  canEdit: boolean;
+  isAdmin: boolean;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
-  loginFamily: (passcode: string, memberName: string) => boolean;
+  loginFamily: (passcode: string, memberName?: string) => boolean;
+  loginFamilyWithPhone: (phone: string, passcode: string) => boolean;
   logoutFamily: () => void;
   requestFamilyAccess: () => void;
+
+  // Guest Invitation & Share Link Feature
+  isInvitedGuest: boolean;
+  setIsInvitedGuest: (invited: boolean) => void;
+  isShareModalOpen: boolean;
+  setIsShareModalOpen: (open: boolean) => void;
+  getInvitationUrl: () => string;
+
+  // Onboarded Children & Family Members & Permission Management
+  familyMembers: FamilyMember[];
+  addFamilyMember: (member: Omit<FamilyMember, "id" | "createdAt">) => void;
+  updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => void;
+  deleteFamilyMember: (id: string) => void;
+  updateMemberPermission: (memberId: string, permission: PermissionLevel) => boolean;
+  generateMemberCode: (name: string) => string;
 
   // State
   settings: EventSettings;
@@ -91,6 +115,7 @@ interface PlannerContextType {
   updateBudgetItem: (id: string, updates: Partial<BudgetItem>) => void;
   recordBudgetPayment: (id: string, amount: number) => void;
   deleteBudgetItem: (id: string) => void;
+  toggleBudgetItemDone: (id: string) => boolean;
 
   addContribution: (contrib: Omit<Contribution, "id" | "dateLogged">) => void;
   updateContribution: (id: string, updates: Partial<Contribution>) => void;
@@ -132,6 +157,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Family Authentication State
   const [isFamilyAuthenticated, setIsFamilyAuthenticated] = useState<boolean>(false);
   const [authenticatedMember, setAuthenticatedMember] = useState<string | null>(null);
+  const [authenticatedMemberId, setAuthenticatedMemberId] = useState<string | null>(null);
+  const [authenticatedPhone, setAuthenticatedPhone] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
   const [settings, setSettings] = useState<EventSettings>(initialEventSettings);
@@ -147,21 +174,78 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [rsvps, setRsvps] = useState<GuestRSVP[]>(initialRSVPs);
   const [condolences, setCondolences] = useState<CondolenceTribute[]>(initialCondolences);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(initialAuditLogs);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(initialFamilyMembers);
+  const [isInvitedGuest, setIsInvitedGuest] = useState<boolean>(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   // Load from localStorage if present
   useEffect(() => {
     try {
+      const savedMembers = localStorage.getItem(STORAGE_PREFIX + "members");
+      if (savedMembers) {
+        const parsed = JSON.parse(savedMembers);
+        const hasOldPlaceholder =
+          Array.isArray(parsed) &&
+          parsed.some(
+            (m: FamilyMember) =>
+              m.name === "Dr. Osas Akhabue" || m.name === "Barr. Jude Akhabue"
+          );
+        if (hasOldPlaceholder) {
+          setFamilyMembers(initialFamilyMembers);
+          localStorage.setItem(STORAGE_PREFIX + "members", JSON.stringify(initialFamilyMembers));
+        } else {
+          setFamilyMembers(parsed);
+        }
+      }
+
       const savedSettings = localStorage.getItem(STORAGE_PREFIX + "settings");
       if (savedSettings) setSettings(JSON.parse(savedSettings));
 
       const savedBudget = localStorage.getItem(STORAGE_PREFIX + "budget");
-      if (savedBudget) setBudgetItems(JSON.parse(savedBudget));
+      if (savedBudget) {
+        const parsed = JSON.parse(savedBudget);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const cleaned = parsed.map((item: BudgetItem) => {
+            const { assignedLead: _lead, ...rest } = item;
+            return {
+              ...rest,
+              isDone: rest.isDone !== undefined ? rest.isDone : rest.paidStatus === "Paid",
+            };
+          });
+          setBudgetItems(cleaned);
+          localStorage.setItem(STORAGE_PREFIX + "budget", JSON.stringify(cleaned));
+        } else {
+          setBudgetItems(initialBudgetItems);
+        }
+      }
 
       const savedContrib = localStorage.getItem(STORAGE_PREFIX + "contributions");
-      if (savedContrib) setContributions(JSON.parse(savedContrib));
+      if (savedContrib) {
+        const parsed = JSON.parse(savedContrib);
+        const hasOldPlaceholder =
+          Array.isArray(parsed) &&
+          parsed.some((c: Contribution) => c.contributorName === "Dr. Osas Akhabue");
+        if (hasOldPlaceholder) {
+          setContributions(initialContributions);
+          localStorage.setItem(STORAGE_PREFIX + "contributions", JSON.stringify(initialContributions));
+        } else {
+          setContributions(parsed);
+        }
+      }
 
       const savedTasks = localStorage.getItem(STORAGE_PREFIX + "tasks");
-      if (savedTasks) setTasks(JSON.parse(savedTasks));
+      if (savedTasks) {
+        const parsed = JSON.parse(savedTasks);
+        const hasOldPlaceholder =
+          Array.isArray(parsed) &&
+          parsed.some((t: TaskItem) => t.assignedPerson === "Dr. Osas Akhabue" || t.assignedPerson === "Chinedu");
+        if (hasOldPlaceholder) {
+          setTasks(initialTasks);
+          localStorage.setItem(STORAGE_PREFIX + "tasks", JSON.stringify(initialTasks));
+        } else {
+          setTasks(parsed);
+        }
+      }
 
       const savedShopping = localStorage.getItem(STORAGE_PREFIX + "shopping");
       if (savedShopping) setShoppingList(JSON.parse(savedShopping));
@@ -170,7 +254,18 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (savedReno) setRenovationItems(JSON.parse(savedReno));
 
       const savedProg = localStorage.getItem(STORAGE_PREFIX + "programme");
-      if (savedProg) setProgramme(JSON.parse(savedProg));
+      if (savedProg) {
+        const parsed = JSON.parse(savedProg);
+        const hasOldLead =
+          Array.isArray(parsed) &&
+          parsed.some((p: ProgrammeActivity) => p.coordinator && p.coordinator.includes("Uncle Patrick"));
+        if (hasOldLead) {
+          setProgramme(initialProgramme);
+          localStorage.setItem(STORAGE_PREFIX + "programme", JSON.stringify(initialProgramme));
+        } else {
+          setProgramme(parsed);
+        }
+      }
 
       const savedVendors = localStorage.getItem(STORAGE_PREFIX + "vendors");
       if (savedVendors) setVendors(JSON.parse(savedVendors));
@@ -187,14 +282,39 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Check session storage for family login
       const savedAuth = sessionStorage.getItem("akhabue_family_auth");
       const savedMember = sessionStorage.getItem("akhabue_family_member");
+      const savedMemberId = sessionStorage.getItem("akhabue_family_member_id");
+      const savedPhone = sessionStorage.getItem("akhabue_family_member_phone");
+      const savedRole = sessionStorage.getItem("akhabue_family_role") as UserRole | null;
       if (savedAuth === "true") {
         setIsFamilyAuthenticated(true);
         setAuthenticatedMember(savedMember || "Family Member");
+        if (savedMemberId) setAuthenticatedMemberId(savedMemberId);
+        if (savedPhone) setAuthenticatedPhone(savedPhone);
+        if (savedRole) setUserRole(savedRole);
+      }
+
+      // Check if viewing via invitation link
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (
+          urlParams.get("invited") === "true" ||
+          urlParams.get("guest") === "true" ||
+          window.location.pathname.startsWith("/invite")
+        ) {
+          setIsInvitedGuest(true);
+        }
       }
     } catch {
       // ignore parse error and keep initial state
     }
   }, []);
+
+  const getInvitationUrl = () => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/invite`;
+    }
+    return "http://localhost:3005/invite";
+  };
 
   // Save changes
   const saveState = (key: string, data: unknown) => {
@@ -264,8 +384,54 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     renovationTotalPaid,
   };
 
+  // Active member and permissions evaluation
+  const activeMemberObj = familyMembers.find(
+    (m) =>
+      (authenticatedMemberId && m.id === authenticatedMemberId) ||
+      m.name === authenticatedMember
+  );
+
+  const isAdmin = userRole === "admin";
+  const userPermission: PermissionLevel = isAdmin
+    ? "view_and_edit"
+    : activeMemberObj?.permission || "view_only";
+
+  const canEdit = isFamilyAuthenticated && (isAdmin || userPermission === "view_and_edit");
+
+  // Server/Context permission guards
+  const guardEditPermission = (operation: string): boolean => {
+    if (!isFamilyAuthenticated) {
+      console.warn(`[Blocked] Unauthenticated attempt: ${operation}`);
+      return false;
+    }
+    if (!canEdit) {
+      console.warn(
+        `[Permission Denied] ${authenticatedMember || "User"} is in View-Only mode. Blocked action: ${operation}`
+      );
+      addAudit(
+        "Permission Denied",
+        `Blocked modification (${operation}) by view-only user: ${authenticatedMember || "Unknown"}`
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const guardAdminPermission = (operation: string): boolean => {
+    if (userRole !== "admin") {
+      console.warn(`[Admin Denied] Non-admin attempted: ${operation}`);
+      addAudit(
+        "Admin Access Denied",
+        `${authenticatedMember || "User"} attempted admin action: ${operation}`
+      );
+      return false;
+    }
+    return true;
+  };
+
   // Actions
   const updateSettings = (newSettings: Partial<EventSettings>) => {
+    if (!guardEditPermission("updateSettings")) return;
     setSettings((prev) => {
       const next = { ...prev, ...newSettings };
       saveState("settings", next);
@@ -275,6 +441,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addBudgetItem = (item: Omit<BudgetItem, "id">) => {
+    if (!guardEditPermission("addBudgetItem")) return;
     const newItem: BudgetItem = {
       ...item,
       id: "b-" + Date.now(),
@@ -288,6 +455,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateBudgetItem = (id: string, updates: Partial<BudgetItem>) => {
+    if (!guardEditPermission("updateBudgetItem")) return;
     setBudgetItems((prev) => {
       const next = prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
       saveState("budget", next);
@@ -297,6 +465,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const recordBudgetPayment = (id: string, amount: number) => {
+    if (!guardEditPermission("recordBudgetPayment")) return;
     setBudgetItems((prev) => {
       const next = prev.map((item) => {
         if (item.id === id) {
@@ -315,6 +484,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteBudgetItem = (id: string) => {
+    if (!guardEditPermission("deleteBudgetItem")) return;
     setBudgetItems((prev) => {
       const next = prev.filter((item) => item.id !== id);
       saveState("budget", next);
@@ -323,7 +493,33 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addAudit("Budget Item Deleted", `Removed item ${id}`);
   };
 
+  const toggleBudgetItemDone = (id: string): boolean => {
+    if (!isAdmin) {
+      alert("Only the Administrator can tick what has been done and what is left.");
+      return false;
+    }
+    setBudgetItems((prev) => {
+      const next = prev.map((item) => {
+        if (item.id === id) {
+          const wasDone = item.isDone !== undefined ? item.isDone : item.paidStatus === "Paid";
+          const newDone = !wasDone;
+          return {
+            ...item,
+            isDone: newDone,
+            paidStatus: (newDone ? "Paid" : item.amountPaid > 0 ? "Partial" : "Unpaid") as BudgetItem["paidStatus"],
+          };
+        }
+        return item;
+      });
+      saveState("budget", next);
+      return next;
+    });
+    addAudit("Item Status Toggled", `Toggled done/left status for item ${id}`);
+    return true;
+  };
+
   const addContribution = (contrib: Omit<Contribution, "id" | "dateLogged">) => {
+    if (!guardEditPermission("addContribution")) return;
     const newContrib: Contribution = {
       ...contrib,
       id: "c-" + Date.now(),
@@ -338,6 +534,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateContribution = (id: string, updates: Partial<Contribution>) => {
+    if (!guardEditPermission("updateContribution")) return;
     setContributions((prev) => {
       const next = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
       saveState("contributions", next);
@@ -347,6 +544,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addTask = (task: Omit<TaskItem, "id">) => {
+    if (!guardEditPermission("addTask")) return;
     const newTask: TaskItem = { ...task, id: "t-" + Date.now() };
     setTasks((prev) => {
       const next = [...prev, newTask];
@@ -357,6 +555,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateTask = (id: string, updates: Partial<TaskItem>) => {
+    if (!guardEditPermission("updateTask")) return;
     setTasks((prev) => {
       const next = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
       saveState("tasks", next);
@@ -366,6 +565,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteTask = (id: string) => {
+    if (!guardEditPermission("deleteTask")) return;
     setTasks((prev) => {
       const next = prev.filter((t) => t.id !== id);
       saveState("tasks", next);
@@ -375,6 +575,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addShoppingItem = (item: Omit<ShoppingItem, "id">) => {
+    if (!guardEditPermission("addShoppingItem")) return;
     const newItem: ShoppingItem = { ...item, id: "s-" + Date.now() };
     setShoppingList((prev) => {
       const next = [...prev, newItem];
@@ -385,6 +586,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateShoppingItem = (id: string, updates: Partial<ShoppingItem>) => {
+    if (!guardEditPermission("updateShoppingItem")) return;
     setShoppingList((prev) => {
       const next = prev.map((s) => (s.id === id ? { ...s, ...updates } : s));
       saveState("shopping", next);
@@ -393,6 +595,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateRenovationItem = (id: string, updates: Partial<RenovationItem>) => {
+    if (!guardEditPermission("updateRenovationItem")) return;
     setRenovationItems((prev) => {
       const next = prev.map((r) => (r.id === id ? { ...r, ...updates } : r));
       saveState("renovation", next);
@@ -402,6 +605,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addRenovationItem = (item: Omit<RenovationItem, "id">) => {
+    if (!guardEditPermission("addRenovationItem")) return;
     const newItem: RenovationItem = { ...item, id: "r-" + Date.now() };
     setRenovationItems((prev) => {
       const next = [...prev, newItem];
@@ -412,6 +616,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateProgrammeItem = (id: string, updates: Partial<ProgrammeActivity>) => {
+    if (!guardEditPermission("updateProgrammeItem")) return;
     setProgramme((prev) => {
       const next = prev.map((p) => (p.id === id ? { ...p, ...updates } : p));
       saveState("programme", next);
@@ -421,6 +626,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addProgrammeItem = (item: Omit<ProgrammeActivity, "id">) => {
+    if (!guardEditPermission("addProgrammeItem")) return;
     const newItem: ProgrammeActivity = { ...item, id: "p-" + Date.now() };
     setProgramme((prev) => {
       const next = [...prev, newItem].sort((a, b) => a.order - b.order);
@@ -430,6 +636,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addVendor = (vendor: Omit<VendorItem, "id">) => {
+    if (!guardEditPermission("addVendor")) return;
     const newVendor: VendorItem = { ...vendor, id: "v-" + Date.now() };
     setVendors((prev) => {
       const next = [...prev, newVendor];
@@ -440,6 +647,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateVendor = (id: string, updates: Partial<VendorItem>) => {
+    if (!guardEditPermission("updateVendor")) return;
     setVendors((prev) => {
       const next = prev.map((v) => (v.id === id ? { ...v, ...updates } : v));
       saveState("vendors", next);
@@ -476,6 +684,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateDecision = (id: string, status: FamilyDecision["status"], notes?: string) => {
+    if (!guardEditPermission("updateDecision")) return;
     setDecisions((prev) => {
       const next = prev.map((d) =>
         d.id === id
@@ -495,6 +704,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addDocument = (doc: Omit<EventDocument, "id" | "uploadDate">) => {
+    if (!guardEditPermission("addDocument")) return;
     const newDoc: EventDocument = {
       ...doc,
       id: "doc-" + Date.now(),
@@ -508,29 +718,239 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addAudit("Document Uploaded", `Added file: ${newDoc.title}`);
   };
 
-  const loginFamily = (passcode: string, memberName: string): boolean => {
-    const clean = passcode.trim().toUpperCase();
-    if (clean === "AKHABUE2026" || clean === "2026" || clean === "AKHABUE" || clean === "1234") {
+  const generateMemberCode = (name: string): string => {
+    const cleanName = name
+      .replace(/^(Dr\.|Barr\.|Engr\.|Sister|Brother|Aunty|Uncle|Chief|Prof\.)\s+/i, "")
+      .trim();
+    const firstWord = cleanName.split(/\s+/)[0] || "CHILD";
+    const prefix = firstWord.substring(0, 4).toUpperCase();
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+    return `${prefix}-${randomDigits}`;
+  };
+
+  const updateMemberPermission = (memberId: string, permission: PermissionLevel): boolean => {
+    if (!guardAdminPermission("updateMemberPermission")) return false;
+
+    const target = familyMembers.find((m) => m.id === memberId);
+    if (!target) return false;
+
+    setFamilyMembers((prev) => {
+      const next = prev.map((m) => (m.id === memberId ? { ...m, permission } : m));
+      saveState("members", next);
+      return next;
+    });
+
+    addAudit(
+      "Permission Updated",
+      `Admin changed ${target.name}'s permission to ${permission === "view_and_edit" ? "View & Edit" : "View Only"}`
+    );
+    return true;
+  };
+
+  const addFamilyMember = (member: Omit<FamilyMember, "id" | "createdAt">) => {
+    const newMember: FamilyMember = {
+      ...member,
+      permission: member.permission || "view_only", // Default permission for every child is View Only
+      id: "m-" + Date.now(),
+      createdAt: new Date().toISOString().substring(0, 10),
+    };
+    setFamilyMembers((prev) => {
+      const filtered = prev.filter(
+        (m) =>
+          m.name.toLowerCase() !== newMember.name.toLowerCase() &&
+          m.loginCode.toUpperCase() !== newMember.loginCode.toUpperCase()
+      );
+      const next = [newMember, ...filtered];
+      saveState("members", next);
+      return next;
+    });
+    addAudit(
+      "Child Onboarded",
+      `Onboarded ${newMember.name} with login code: ${newMember.loginCode} (Permission: ${newMember.permission})`
+    );
+  };
+
+  const updateFamilyMember = (id: string, updates: Partial<FamilyMember>) => {
+    setFamilyMembers((prev) => {
+      const next = prev.map((m) => (m.id === id ? { ...m, ...updates } : m));
+      saveState("members", next);
+      return next;
+    });
+    addAudit("Member Updated", `Updated member profile / login code for ID ${id}`);
+  };
+
+  const deleteFamilyMember = (id: string) => {
+    const target = familyMembers.find((m) => m.id === id);
+    setFamilyMembers((prev) => {
+      const next = prev.filter((m) => m.id !== id);
+      saveState("members", next);
+      return next;
+    });
+    addAudit(
+      "Member Removed",
+      `Removed ${target ? target.name : id} from members list`
+    );
+  };
+
+  const loginFamilyWithPhone = (phoneInput: string, passcode: string): boolean => {
+    const cleanPhone = phoneInput.replace(/[^0-9]/g, "");
+    const cleanCode = passcode.trim().toUpperCase();
+
+    if (!cleanPhone || !cleanCode) return false;
+
+    // Match child by normalized phone and code
+    const matched = familyMembers.find((m) => {
+      const memberCleanPhone = (m.phone || "").replace(/[^0-9]/g, "");
+      if (!memberCleanPhone) return false;
+      const phoneMatches =
+        memberCleanPhone.endsWith(cleanPhone) ||
+        cleanPhone.endsWith(memberCleanPhone) ||
+        (cleanPhone.length >= 7 && memberCleanPhone.slice(-7) === cleanPhone.slice(-7));
+      const codeMatches = m.loginCode.trim().toUpperCase() === cleanCode;
+      return phoneMatches && codeMatches;
+    });
+
+    if (matched) {
       setIsFamilyAuthenticated(true);
-      setAuthenticatedMember(memberName || "Family Member");
+      setAuthenticatedMember(matched.name);
+      setAuthenticatedMemberId(matched.id);
+      setAuthenticatedPhone(matched.phone || phoneInput);
+
+      const isExecutive =
+        matched.assignedRole?.includes("Executive") || matched.loginCode === "ADMIN-2026";
+      setUserRole(isExecutive ? "admin" : "sibling");
+
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+      updateFamilyMember(matched.id, { lastLogin: nowStr });
+
       try {
         sessionStorage.setItem("akhabue_family_auth", "true");
-        sessionStorage.setItem("akhabue_family_member", memberName || "Family Member");
+        sessionStorage.setItem("akhabue_family_member", matched.name);
+        sessionStorage.setItem("akhabue_family_member_id", matched.id);
+        sessionStorage.setItem("akhabue_family_member_phone", matched.phone || phoneInput);
+        sessionStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
+      } catch {}
+
+      setCurrentView("family");
+      setIsAuthModalOpen(false);
+      addAudit(
+        "Phone Login Verified",
+        `${matched.name} logged in with phone (${matched.phone || phoneInput}) and code. Permission: ${matched.permission || "view_only"}`
+      );
+      return true;
+    }
+
+    // Admin bypass also supported with phone input if master code
+    if (
+      cleanCode === "AKHABUE2026" ||
+      cleanCode === "2026" ||
+      cleanCode === "ADMIN-2026"
+    ) {
+      setIsFamilyAuthenticated(true);
+      setAuthenticatedMember("Family Committee Admin");
+      setAuthenticatedMemberId("m-07");
+      setUserRole("admin");
+      try {
+        sessionStorage.setItem("akhabue_family_auth", "true");
+        sessionStorage.setItem("akhabue_family_member", "Family Committee Admin");
+        sessionStorage.setItem("akhabue_family_member_id", "m-07");
+        sessionStorage.setItem("akhabue_family_role", "admin");
       } catch {}
       setCurrentView("family");
       setIsAuthModalOpen(false);
-      addAudit("Family Member Login", `${memberName} signed into private session`);
+      addAudit(
+        "Admin Master Login",
+        `Admin logged in via bypass code (${cleanCode})`
+      );
       return true;
     }
+
+    return false;
+  };
+
+  const loginFamily = (passcode: string, memberName?: string): boolean => {
+    const clean = passcode.trim().toUpperCase();
+    if (!clean) return false;
+
+    // 1. Direct match with a member's personalized loginCode
+    const matchedMember = familyMembers.find(
+      (m) => m.loginCode.trim().toUpperCase() === clean
+    );
+
+    if (matchedMember) {
+      const activeName =
+        memberName && memberName !== "AUTO" ? memberName : matchedMember.name;
+      setIsFamilyAuthenticated(true);
+      setAuthenticatedMember(activeName);
+      setAuthenticatedMemberId(matchedMember.id);
+      setAuthenticatedPhone(matchedMember.phone || null);
+
+      const isExecutive =
+        matchedMember.assignedRole?.includes("Executive") || matchedMember.loginCode === "ADMIN-2026";
+      setUserRole(isExecutive ? "admin" : "sibling");
+
+      // Record last login time
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+      updateFamilyMember(matchedMember.id, { lastLogin: nowStr });
+
+      try {
+        sessionStorage.setItem("akhabue_family_auth", "true");
+        sessionStorage.setItem("akhabue_family_member", activeName);
+        sessionStorage.setItem("akhabue_family_member_id", matchedMember.id);
+        sessionStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
+      } catch {}
+      setCurrentView("family");
+      setIsAuthModalOpen(false);
+      addAudit(
+        "Child Login Verified",
+        `${activeName} logged in with assigned code (${clean}). Permission: ${matchedMember.permission || "view_only"}`
+      );
+      return true;
+    }
+
+    // 2. Master passcodes for Admin & Committee emergency access
+    if (
+      clean === "AKHABUE2026" ||
+      clean === "2026" ||
+      clean === "AKHABUE" ||
+      clean === "1234" ||
+      clean === "ADMIN-2026"
+    ) {
+      const activeName = memberName || "Family Committee Admin";
+      setIsFamilyAuthenticated(true);
+      setAuthenticatedMember(activeName);
+      setAuthenticatedMemberId("m-07");
+      setUserRole("admin");
+      try {
+        sessionStorage.setItem("akhabue_family_auth", "true");
+        sessionStorage.setItem("akhabue_family_member", activeName);
+        sessionStorage.setItem("akhabue_family_member_id", "m-07");
+        sessionStorage.setItem("akhabue_family_role", "admin");
+      } catch {}
+      setCurrentView("family");
+      setIsAuthModalOpen(false);
+      addAudit(
+        "Admin / Committee Login",
+        `${activeName} logged in with master bypass code`
+      );
+      return true;
+    }
+
     return false;
   };
 
   const logoutFamily = () => {
     setIsFamilyAuthenticated(false);
     setAuthenticatedMember(null);
+    setAuthenticatedMemberId(null);
+    setAuthenticatedPhone(null);
+    setUserRole("sibling");
     try {
       sessionStorage.removeItem("akhabue_family_auth");
       sessionStorage.removeItem("akhabue_family_member");
+      sessionStorage.removeItem("akhabue_family_member_id");
+      sessionStorage.removeItem("akhabue_family_member_phone");
+      sessionStorage.removeItem("akhabue_family_role");
     } catch {}
     setCurrentView("guest");
     addAudit("Family Member Logout", "Session locked and returned to guest view");
@@ -558,6 +978,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setRsvps(initialRSVPs);
     setCondolences(initialCondolences);
     setAuditLogs(initialAuditLogs);
+    setFamilyMembers(initialFamilyMembers);
 
     localStorage.clear();
     addAudit("Data Reset", "Reset entire planner state to initial proposal data");
@@ -574,11 +995,28 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setDashboardSection,
         isFamilyAuthenticated,
         authenticatedMember,
+        authenticatedMemberId,
+        authenticatedPhone,
+        userPermission,
+        canEdit,
+        isAdmin,
         isAuthModalOpen,
         setIsAuthModalOpen,
         loginFamily,
+        loginFamilyWithPhone,
         logoutFamily,
         requestFamilyAccess,
+        isInvitedGuest,
+        setIsInvitedGuest,
+        isShareModalOpen,
+        setIsShareModalOpen,
+        getInvitationUrl,
+        familyMembers,
+        addFamilyMember,
+        updateFamilyMember,
+        deleteFamilyMember,
+        updateMemberPermission,
+        generateMemberCode,
         settings,
         updateSettings,
         budgetItems,
@@ -598,6 +1036,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateBudgetItem,
         recordBudgetPayment,
         deleteBudgetItem,
+        toggleBudgetItemDone,
         addContribution,
         updateContribution,
         addTask,

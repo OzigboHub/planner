@@ -13,9 +13,34 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "In Loving Memory of Pa Festus Okoruwa Akhabue | Burial Planning & Memorial",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3005"),
+  title: "In Loving Memory of Pa Festus Okoruwa Akhabue | Funeral & Celebration of Life",
   description:
-    "Catholic funeral, interment and reception planning portal, budget ledger, programme, and guest information for Pa Festus Okoruwa Akhabue at St. Matthew Catholic Church, Eidenu, Irrua, Edo State.",
+    "Official Invitation & Programme: Catholic Funeral Mass, Interment & Reception for Pa Festus Okoruwa Akhabue. Friday, 30 October 2026 at St. Matthew Catholic Church and Akhabue Residence, Eidenu, Irrua, Edo State.",
+  openGraph: {
+    title: "In Loving Memory of Pa Festus Okoruwa Akhabue | Funeral & Celebration of Life",
+    description:
+      "The Akhabue Family cordially invites you to the Catholic Funeral Mass, Interment & Reception Ceremony in Eidenu, Irrua, Edo State on Friday, 30 October 2026.",
+    url: "/invite",
+    siteName: "Pa Festus Okoruwa Akhabue Memorial",
+    images: [
+      {
+        url: "/pa_festus_portrait.png",
+        width: 800,
+        height: 1000,
+        alt: "Pa Festus Okoruwa Akhabue (1948 – 2026)",
+      },
+    ],
+    locale: "en_NG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "In Loving Memory of Pa Festus Okoruwa Akhabue | Funeral & Celebration of Life",
+    description:
+      "Official Invitation: Catholic Funeral Mass, Interment & Reception for Pa Festus Okoruwa Akhabue in Eidenu, Irrua, Edo State.",
+    images: ["/pa_festus_portrait.png"],
+  },
 };
 
 export default function RootLayout({

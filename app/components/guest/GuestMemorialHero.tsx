@@ -2,21 +2,19 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePlanner } from "../../context/PlannerContext";
-import {
-  Calendar,
-  MapPin,
-  Clock,
-  Heart,
-  Users,
-  Compass,
-  FileText,
-  ChevronDown,
-  Gift,
-} from "lucide-react";
 
 export const GuestMemorialHero: React.FC = () => {
-  const { settings, financialMetrics } = usePlanner();
+  const {
+    settings,
+    financialMetrics,
+    isInvitedGuest,
+    setIsShareModalOpen,
+    isFamilyAuthenticated,
+    setCurrentView,
+    setIsAuthModalOpen,
+  } = usePlanner();
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -30,7 +28,7 @@ export const GuestMemorialHero: React.FC = () => {
       {/* Background Hero Banner */}
       <div className="absolute inset-0 z-0 opacity-35 mix-blend-luminosity">
         <Image
-          src="/memorial_banner.jpg"
+          src="/memorial_banner.png"
           alt="Memorial Flowers Banner"
           fill
           priority
@@ -46,18 +44,23 @@ export const GuestMemorialHero: React.FC = () => {
             <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-300 opacity-60 blur-md group-hover:opacity-100 transition duration-500" />
             <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-4 border-amber-400/80 shadow-2xl bg-slate-900">
               <Image
-                src="/memorial_portrait.jpg"
+                src="/pa_festus_portrait.png"
                 alt={settings.honoree}
                 fill
                 priority
-                className="object-cover"
+                unoptimized
+                className="object-cover object-[center_16%]"
               />
-            </div>
-            <div className="absolute bottom-1 right-2 bg-amber-500 text-slate-950 p-1.5 rounded-full shadow-lg border-2 border-slate-900">
-              <Heart className="w-4 h-4 fill-slate-950" />
             </div>
           </div>
         </div>
+
+        {/* Invited Guest Greeting Badge */}
+        {isInvitedGuest && (
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-semibold mb-5 shadow-lg shadow-amber-500/10">
+            <span>Official Guest Invitation • Cordially Invited by the Akhabue Family</span>
+          </div>
+        )}
 
         {/* Solemn Header Text */}
         <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-amber-400 mb-2">
@@ -73,86 +76,76 @@ export const GuestMemorialHero: React.FC = () => {
         {/* Event Meta Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-3xl mx-auto mb-10 text-left">
           <div className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:border-amber-400/40 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 font-medium">Date of Service</p>
-                <p className="text-sm font-bold text-white">Friday, 30 October 2026</p>
-                <p className="text-[11px] text-amber-300">One-Day Solemn Burial</p>
-              </div>
-            </div>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Date of Service</p>
+            <p className="text-sm font-bold text-white mt-1">Friday, 30 October 2026</p>
+            <p className="text-[11px] text-amber-300 mt-0.5">One-Day Solemn Burial</p>
           </div>
 
           <div className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:border-amber-400/40 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 font-medium">Commencement</p>
-                <p className="text-sm font-bold text-white">09:00 AM Mortuary</p>
-                <p className="text-[11px] text-blue-300">10:00 AM Funeral Mass</p>
-              </div>
-            </div>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Commencement</p>
+            <p className="text-sm font-bold text-white mt-1">09:00 AM Mortuary</p>
+            <p className="text-[11px] text-blue-300 mt-0.5">10:00 AM Funeral Mass</p>
           </div>
 
           <div className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:border-amber-400/40 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 font-medium">Primary Location</p>
-                <p className="text-sm font-bold text-white">Eidenu, Irrua, Edo State</p>
-                <p className="text-[11px] text-emerald-300">St. Matthew Parish & Akhabue Compound</p>
-              </div>
-            </div>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Primary Location</p>
+            <p className="text-sm font-bold text-white mt-1">Eidenu, Irrua, Edo State</p>
+            <p className="text-[11px] text-emerald-300 mt-0.5">St. Matthew Parish & Akhabue Compound</p>
           </div>
         </div>
 
         {/* Quick CTA Actions */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <button
-            onClick={() => scrollTo("section-about")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-sm hover:from-amber-400 hover:to-amber-500 transition-all shadow-lg shadow-amber-500/20"
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <Link
+            href="/about"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-sm hover:from-amber-400 hover:to-amber-500 transition-all shadow-lg shadow-amber-500/20"
           >
-            <FileText className="w-4 h-4" />
-            <span>About Pa Festus</span>
-          </button>
+            About Pa Festus
+          </Link>
 
-          <button
-            onClick={() => scrollTo("section-programme")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors"
+          <Link
+            href="/programme"
+            className="px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors"
           >
-            <Clock className="w-4 h-4 text-amber-400" />
-            <span>Burial Programme</span>
-          </button>
+            Burial Programme
+          </Link>
+
+          <Link
+            href="/order-of-mass"
+            className="px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-amber-300 font-semibold text-sm border border-amber-500/30 transition-colors"
+          >
+            Order of Mass
+          </Link>
 
           <button
             onClick={() => scrollTo("section-venues")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors cursor-pointer"
           >
-            <Compass className="w-4 h-4 text-emerald-400" />
-            <span>Directions & Venues</span>
+            Directions &amp; Venues
           </button>
 
-          <button
-            onClick={() => scrollTo("section-condolences")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors"
+          <Link
+            href="/tributes"
+            className="px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors"
           >
-            <Heart className="w-4 h-4 text-rose-400" />
-            <span>Memorial Tributes</span>
-          </button>
+            Memorial Tributes
+          </Link>
 
-          <button
-            onClick={() => scrollTo("section-support")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors"
+          <Link
+            href="/support"
+            className="px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-white font-medium text-sm border border-white/10 transition-colors"
           >
-            <Gift className="w-4 h-4 text-amber-400" />
-            <span>Support the Family</span>
-          </button>
+            Support the Family
+          </Link>
+
+          {!isInvitedGuest && (
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 text-amber-300 font-bold text-sm border border-amber-500/40 transition-all shadow-lg shadow-amber-500/10 cursor-pointer"
+            >
+              Invite Guest
+            </button>
+          )}
         </div>
       </div>
     </div>

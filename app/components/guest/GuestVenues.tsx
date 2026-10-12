@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { usePlanner } from "../../context/PlannerContext";
-import { MapPin, Navigation, Car, AlertTriangle, Check, Copy } from "lucide-react";
 
 export const GuestVenues: React.FC = () => {
   const { settings } = usePlanner();
@@ -41,9 +40,8 @@ export const GuestVenues: React.FC = () => {
             <h3 className="text-xl font-bold text-white mb-2">
               {settings.churchVenue}
             </h3>
-            <p className="text-xs text-slate-300 mb-4 flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-              <span>Directly opposite Udowo Primary School, Eidenu, Irrua, Edo State</span>
+            <p className="text-xs text-slate-300 mb-4">
+              Directly opposite Udowo Primary School, Eidenu, Irrua, Edo State
             </p>
 
             <div className="bg-slate-950/60 p-3.5 rounded-xl border border-white/5 space-y-2 text-xs text-slate-300 mb-5">
@@ -59,19 +57,17 @@ export const GuestVenues: React.FC = () => {
           <div className="flex items-center gap-2 pt-3 border-t border-slate-800">
             <button
               onClick={() => copyAddress("church", "St. Matthew Catholic Church, Opposite Udowo Primary School, Eidenu, Irrua, Edo State")}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors"
+              className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors text-center"
             >
-              {copiedId === "church" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedId === "church" ? "Address Copied!" : "Copy Address"}</span>
+              {copiedId === "church" ? "Address Copied!" : "Copy Address"}
             </button>
             <a
               href="https://www.google.com/maps/place/Udowo+Primary+School/@6.7729349,6.2605227,17z/data=!3m1!4b1!4m6!3m5!1s0x104699bdf36aaaab:0x4192c0a50423e14b!8m2!3d6.7729296!4d6.2653936!16s%2Fg%2F11k4ybvk4r?entry=ttu&g_ep=EgoyMDI2MTAwNi4wIKXMDSoASAFQAw%3D%3D"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors shadow-md"
+              className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors shadow-md text-center"
             >
-              <Navigation className="w-3.5 h-3.5" />
-              <span>Map (Opp. Udowo School)</span>
+              Map (Opp. Udowo School)
             </a>
           </div>
         </div>
@@ -88,9 +84,8 @@ export const GuestVenues: React.FC = () => {
             <h3 className="text-xl font-bold text-white mb-2">
               {settings.residenceVenue}
             </h3>
-            <p className="text-xs text-slate-300 mb-4 flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <span>{settings.residenceAddress}</span>
+            <p className="text-xs text-slate-300 mb-4">
+              {settings.residenceAddress}
             </p>
 
             <div className="bg-slate-950/60 p-3.5 rounded-xl border border-white/5 space-y-2 text-xs text-slate-300 mb-5">
@@ -106,27 +101,24 @@ export const GuestVenues: React.FC = () => {
           <div className="flex items-center gap-2 pt-3 border-t border-slate-800">
             <button
               onClick={() => copyAddress("residence", settings.residenceAddress)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors"
+              className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors text-center"
             >
-              {copiedId === "residence" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedId === "residence" ? "Address Copied!" : "Copy Address"}</span>
+              {copiedId === "residence" ? "Address Copied!" : "Copy Address"}
             </button>
             <a
               href={`https://maps.google.com/?q=${encodeURIComponent(settings.residenceVenue + " Eidenu Irrua Edo State")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-slate-950 transition-colors"
+              className="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-slate-950 transition-colors text-center"
             >
-              <Navigation className="w-3.5 h-3.5" />
-              <span>Open in Google Maps</span>
+              Open in Google Maps
             </a>
           </div>
         </div>
       </div>
 
       {/* Security & Parking Notice */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-start gap-3.5 text-xs text-slate-300">
-        <Car className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
         <div>
           <p className="font-semibold text-white mb-0.5">Security & Guest Escort Protocol</p>
           <p className="text-slate-400">

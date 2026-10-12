@@ -17,6 +17,8 @@ import {
   FileText,
   Printer,
   ShieldAlert,
+  KeyRound,
+  UserPlus,
 } from "lucide-react";
 
 export const DashboardNav: React.FC = () => {
@@ -29,6 +31,7 @@ export const DashboardNav: React.FC = () => {
     renovationItems,
     decisions,
     userRole,
+    familyMembers,
   } = usePlanner();
 
   const pendingTasksCount = tasks.filter((t) => t.status !== "Completed").length;
@@ -36,6 +39,13 @@ export const DashboardNav: React.FC = () => {
 
   const navItems: { id: DashboardSection; label: string; icon: any; badge?: string | number; badgeColor?: string }[] = [
     { id: "overview", label: "Executive Overview", icon: LayoutDashboard },
+    {
+      id: "children",
+      label: "Children & Access Codes",
+      icon: KeyRound,
+      badge: `${familyMembers.length} codes`,
+      badgeColor: "bg-amber-500/20 text-amber-300",
+    },
     {
       id: "budget",
       label: "Budget & Expenses",

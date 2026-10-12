@@ -13,6 +13,7 @@ import {
   Wallet,
   ArrowUpRight,
   TrendingUp,
+  Eye,
 } from "lucide-react";
 
 export const ContributionsTracker: React.FC = () => {
@@ -22,6 +23,7 @@ export const ContributionsTracker: React.FC = () => {
     updateContribution,
     financialMetrics,
     userRole,
+    canEdit,
   } = usePlanner();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -35,6 +37,7 @@ export const ContributionsTracker: React.FC = () => {
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     if (!name.trim() || !promisedAmount) return;
 
     addContribution({
@@ -78,13 +81,20 @@ export const ContributionsTracker: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Record Sibling Commitment</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Record Sibling Commitment</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium w-fit">
+            <Eye className="w-4 h-4 text-emerald-400" />
+            <span>View-Only Ledger</span>
+          </div>
+        )}
       </div>
 
       {/* Sibling Ledger KPI Bar */}
@@ -195,15 +205,21 @@ export const ContributionsTracker: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4 text-right">
-                      {c.status !== "Verified" ? (
-                        <button
-                          onClick={() => updateContribution(c.id, { status: "Verified" })}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-[10px] font-medium transition-colors"
-                        >
-                          Verify Receipt
-                        </button>
+                      {canEdit ? (
+                        c.status !== "Verified" ? (
+                          <button
+                            onClick={() => updateContribution(c.id, { status: "Verified" })}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-[10px] font-medium transition-colors"
+                          >
+                            Verify Receipt
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-emerald-400 font-medium">✓ Confirmed</span>
+                        )
                       ) : (
-                        <span className="text-[10px] text-emerald-400 font-medium">✓ Confirmed</span>
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {c.status === "Verified" ? "✓ Confirmed" : "Pledged"}
+                        </span>
                       )}
                     </td>
                   </tr>
