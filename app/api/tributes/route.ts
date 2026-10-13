@@ -3,7 +3,7 @@ import { getAllTributes, insertTribute } from "../../lib/db";
 
 export async function GET() {
   try {
-    const tributes = getAllTributes();
+    const tributes = await getAllTributes();
     return NextResponse.json({ success: true, tributes });
   } catch (error: any) {
     console.error("Failed to fetch tributes from database:", error);
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newTribute = insertTribute({
+    const newTribute = await insertTribute({
       author_name: author_name.trim(),
       relationship: relationship ? String(relationship).trim() : undefined,
       location: location ? String(location).trim() : undefined,
@@ -71,7 +71,7 @@ export async function DELETE(request: Request) {
     }
 
     const { deleteTribute } = await import("../../lib/db");
-    const deleted = deleteTribute(id);
+    const deleted = await deleteTribute(id);
 
     if (deleted) {
       return NextResponse.json({ success: true, message: "Tribute deleted successfully" });

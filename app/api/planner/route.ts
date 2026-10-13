@@ -3,7 +3,7 @@ import { getPlannerData, updatePlannerData } from "../../lib/plannerDb";
 
 export async function GET() {
   try {
-    const data = getPlannerData();
+    const data = await getPlannerData();
     return NextResponse.json(
       { success: true, data },
       {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const updated = updatePlannerData(key, data);
+    const updated = await updatePlannerData(key, data);
     return NextResponse.json(
       { success: true, data: updated },
       {

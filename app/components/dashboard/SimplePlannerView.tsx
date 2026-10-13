@@ -151,6 +151,10 @@ export const SimplePlannerView: React.FC = () => {
   };
 
   const handleOpenAddModal = () => {
+    if (!isAdmin && !canEdit) {
+      alert("Only authorized Family Admins can add planning items.");
+      return;
+    }
     setEditingItem(null);
     setItemForm({
       name: "",
@@ -164,6 +168,10 @@ export const SimplePlannerView: React.FC = () => {
   };
 
   const handleOpenEditModal = (item: BudgetItem) => {
+    if (!isAdmin && !canEdit) {
+      alert("Only authorized Family Admins can edit planning items.");
+      return;
+    }
     setEditingItem(item);
     const totalCost = item.actualCost ?? item.quotedAmount ?? item.provisionalAllowance;
     setItemForm({
@@ -179,6 +187,10 @@ export const SimplePlannerView: React.FC = () => {
 
   const handleSaveItem = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin && !canEdit) {
+      alert("Only authorized Family Admins can add or update planning amounts. Please log in with an Administrator account.");
+      return;
+    }
     if (!itemForm.name.trim() || !itemForm.amount.trim()) return;
 
     const amountNum = parseFloat(itemForm.amount.replace(/[^0-9.]/g, "")) || 0;
@@ -213,6 +225,10 @@ export const SimplePlannerView: React.FC = () => {
   };
 
   const handleDeleteItem = (id: string, name: string) => {
+    if (!isAdmin && !canEdit) {
+      alert("Only authorized Family Admins can remove planning items.");
+      return;
+    }
     if (confirm(`Remove "${name}" from the burial planner?`)) {
       deleteBudgetItem(id);
     }

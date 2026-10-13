@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import {
   BudgetItem,
   Contribution,
@@ -303,8 +303,14 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  const lastSavedTimestampRef = useRef<number>(0);
+
   // Synchronize state with central server so changes reflect across all children's devices
   const syncWithServer = useCallback(async () => {
+    // If admin saved locally in the last 6 seconds, prevent polling from overwriting fresh local input
+    if (Date.now() - lastSavedTimestampRef.current < 6000) {
+      return;
+    }
     try {
       const res = await fetch("/api/planner", { cache: "no-store" });
       if (!res.ok) return;
@@ -418,6 +424,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Save changes locally and immediately broadcast to shared server
   const saveState = (key: string, data: unknown) => {
+    lastSavedTimestampRef.current = Date.now();
     try {
       localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(data));
     } catch {

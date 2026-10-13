@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { getDb, ensureDbSchema } from "./dbClient";
 
 export interface DBTribute {
   id: string;
@@ -27,7 +28,7 @@ function ensureDbFile(): void {
   }
 }
 
-export function getAllTributes(): DBTribute[] {
+function getLocalTributes(): DBTribute[] {
   ensureDbFile();
   try {
     const raw = fs.readFileSync(DB_FILE, "utf8");
@@ -44,16 +45,46 @@ export function getAllTributes(): DBTribute[] {
   }
 }
 
-export function insertTribute(data: {
+function saveLocalTributes(list: DBTribute[]): void {
+  ensureDbFile();
+  try {
+    const tempFile = DB_FILE + ".tmp";
+    fs.writeFileSync(tempFile, JSON.stringify(list, null, 2), "utf8");
+    fs.renameSync(tempFile, DB_FILE);
+  } catch (err) {
+    console.error("Failed to save local tributes file:", err);
+  }
+}
+
+export async function getAllTributes(): Promise<DBTribute[]> {
+  const sql = getDb();
+  if (sql) {
+    try {
+      await ensureDbSchema();
+      const rows = (await sql`
+        SELECT id, author_name, relationship, location, message, candle_lit, is_pinned, created_at
+        FROM tributes
+        ORDER BY is_pinned DESC, created_at DESC;
+      `) as DBTribute[];
+
+      // Sync local file
+      saveLocalTributes(rows);
+      return rows;
+    } catch (err) {
+      console.error("Failed to fetch tributes from Neon, falling back to local file:", err);
+    }
+  }
+
+  return getLocalTributes();
+}
+
+export async function insertTribute(data: {
   author_name: string;
   relationship?: string;
   location?: string;
   message: string;
   candle_lit?: boolean;
-}): DBTribute {
-  ensureDbFile();
-  const current = getAllTributes();
-
+}): Promise<DBTribute> {
   const id = "trib-" + Date.now();
   const created_at = new Date().toISOString().replace("T", " ").substring(0, 16);
   const candle_lit = data.candle_lit === false ? 0 : 1;
@@ -73,25 +104,43 @@ export function insertTribute(data: {
     created_at,
   };
 
+  const sql = getDb();
+  if (sql) {
+    try {
+      await ensureDbSchema();
+      await sql`
+        INSERT INTO tributes (id, author_name, relationship, location, message, candle_lit, is_pinned, created_at)
+        VALUES (${id}, ${author_name}, ${relationship}, ${location}, ${message}, ${candle_lit}, 0, ${created_at});
+      `;
+    } catch (err) {
+      console.error("Failed to insert tribute into Neon:", err);
+    }
+  }
+
+  const current = getLocalTributes();
   const updated = [newTribute, ...current];
-  const tempFile = DB_FILE + ".tmp";
-  fs.writeFileSync(tempFile, JSON.stringify(updated, null, 2), "utf8");
-  fs.renameSync(tempFile, DB_FILE);
+  saveLocalTributes(updated);
 
   return newTribute;
 }
 
-export function deleteTribute(id: string): boolean {
-  ensureDbFile();
-  const current = getAllTributes();
-  const filtered = current.filter((t) => t.id !== id);
+export async function deleteTribute(id: string): Promise<boolean> {
+  const sql = getDb();
+  if (sql) {
+    try {
+      await ensureDbSchema();
+      await sql`DELETE FROM tributes WHERE id = ${id};`;
+    } catch (err) {
+      console.error("Failed to delete tribute from Neon:", err);
+    }
+  }
 
+  const current = getLocalTributes();
+  const filtered = current.filter((t) => t.id !== id);
   if (filtered.length === current.length) {
     return false;
   }
 
-  const tempFile = DB_FILE + ".tmp";
-  fs.writeFileSync(tempFile, JSON.stringify(filtered, null, 2), "utf8");
-  fs.renameSync(tempFile, DB_FILE);
+  saveLocalTributes(filtered);
   return true;
 }
