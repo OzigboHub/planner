@@ -24,9 +24,5 @@ function InviteContent() {
 }
 
 export default function InvitePage() {
-  return (
-    <PlannerProvider>
-      <InviteContent />
-    </PlannerProvider>
-  );
+  return <InviteContent />;
 }

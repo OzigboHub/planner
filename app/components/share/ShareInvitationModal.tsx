@@ -31,7 +31,7 @@ export const ShareInvitationModal: React.FC = () => {
 
   const inviteUrl = getInvitationUrl();
 
-  const invitationMessage = `🕊️ *In Loving Memory of Pa Festus Okoruwa Akhabue* (1948 – 2026)\n\nThe Akhabue Family cordially invites you to the Funeral Mass, Interment & Celebration of Life:\n\n📅 *Date:* Friday, 30th October 2026\n⛪ *Funeral Mass:* St. Matthew Catholic Church, Eidenu, Irrua (10:00 AM)\n📍 *Interment & Reception:* Akhabue Family Compound, Eidenu, Irrua\n\nKindly view the official order of ceremonies, directions, and leave tributes here:\n👉 ${inviteUrl}`;
+  const invitationMessage = `🕊️ *In Loving Memory of ${settings.honoree}* (Aged 74 Years)\n\nThe Akhabue Family cordially invites you to the Funeral Ceremonies & Celebration of Life:\n\n📅 *Schedule of Arrangements:*\n• *Thursday, 29th October 2026 (5:00 PM):* Catholic Vigil Mass at St. Matthew Catholic Church premises\n• *Friday, 30th October 2026 (11:00 AM):* Funeral Mass at St. Matthew Catholic Church, followed by Interment (12:30 PM) & Reception until 6:30 PM at Akhabue Family Compound, Eidenu, Irrua\n\nKindly view the official order of ceremonies, directions, and leave tributes here:\n👉 ${inviteUrl}`;
 
   const handleCopyLink = async () => {
     try {
@@ -153,14 +153,15 @@ export const ShareInvitationModal: React.FC = () => {
                 <h4 className="text-sm sm:text-base font-bold text-white truncate font-serif">
                   {settings.honoree}
                 </h4>
-                <div className="mt-1.5 space-y-1 text-[11px] text-slate-300">
+                <p className="text-[11px] font-semibold text-amber-300">Aged 74 Years</p>
+                <div className="mt-1 space-y-1 text-[11px] text-slate-300">
                   <div className="flex items-center gap-1.5 truncate">
                     <Calendar className="w-3 h-3 text-amber-400 shrink-0" />
-                    <span>Friday, 30 October 2026</span>
+                    <span>29th – 30th October 2026</span>
                   </div>
                   <div className="flex items-center gap-1.5 truncate">
                     <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
-                    <span className="truncate">St. Matthew Catholic Church, Eidenu, Irrua</span>
+                    <span className="truncate">St. Matthew Catholic Church &amp; Akhabue Compound</span>
                   </div>
                 </div>
               </div>
@@ -178,11 +179,10 @@ export const ShareInvitationModal: React.FC = () => {
               </div>
               <button
                 onClick={handleCopyLink}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shrink-0 ${
-                  copiedLink
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shrink-0 ${copiedLink
                     ? "bg-emerald-500 text-slate-950"
                     : "bg-amber-500 hover:bg-amber-400 text-slate-950"
-                }`}
+                  }`}
               >
                 {copiedLink ? (
                   <>
@@ -252,7 +252,7 @@ export const ShareInvitationModal: React.FC = () => {
         <div className="p-4 bg-slate-950/80 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-1.5">
             <Heart className="w-3.5 h-3.5 text-amber-400" />
-            <span>Honoring Pa Festus Okoruwa Akhabue</span>
+            <span>Honoring Late MrFestus Okoruwa Akhabue</span>
           </div>
           <button
             onClick={() => setIsShareModalOpen(false)}

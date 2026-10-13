@@ -23,9 +23,5 @@ function SupportPageContent() {
 }
 
 export default function SupportPage() {
-  return (
-    <PlannerProvider>
-      <SupportPageContent />
-    </PlannerProvider>
-  );
+  return <SupportPageContent />;
 }

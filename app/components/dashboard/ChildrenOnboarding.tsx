@@ -758,7 +758,7 @@ export const ChildrenOnboarding: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-amber-300 flex items-center gap-1.5">
                     <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Personal Login Access Code *</span>
+                    <span>Personal 6-Digit Access PIN *</span>
                   </label>
                   <button
                     type="button"
@@ -776,11 +776,11 @@ export const ChildrenOnboarding: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, loginCode: e.target.value.toUpperCase() })
                   }
-                  placeholder="e.g. UWADE-2026 or 8392"
+                  placeholder="e.g. 261001"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:outline-none focus:border-amber-400 uppercase tracking-widest"
                 />
                 <p className="text-[11px] text-slate-400">
-                  The child logs in using their registered phone number and this unique access code.
+                  The member logs in using their registered phone number and this 6-digit access PIN.
                 </p>
               </div>
 

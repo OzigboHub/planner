@@ -24,6 +24,7 @@ export const PrintableReport: React.FC = () => {
     tasks,
     contributions,
     renovationItems,
+    familyMembers,
   } = usePlanner();
 
   const handlePrint = () => {
@@ -64,15 +65,15 @@ export const PrintableReport: React.FC = () => {
               Official Family Planning Document • Confidential
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
-              {settings.honoree}
+              {settings.honoree} (Aged 74)
             </h1>
             <p className="text-sm text-slate-300">
-              Catholic Funeral Mass, Solemn Interment & Reception Dossier
+              Catholic Funeral Mass, Solemn Interment &amp; Reception Dossier
             </p>
           </div>
 
           <div className="text-right text-xs text-slate-300 space-y-1">
-            <p><strong>Date:</strong> Friday, 30 October 2026</p>
+            <p><strong>Dates:</strong> 29th &amp; 30th October 2026</p>
             <p><strong>Location:</strong> Irrua, Edo State, Nigeria</p>
             <p><strong>Expected Reception Guests:</strong> ~500</p>
           </div>
@@ -146,7 +147,7 @@ export const PrintableReport: React.FC = () => {
         {/* Section 2: Day-of Programme (Offline Essential) */}
         <div className="mb-8 break-inside-avoid">
           <h3 className="text-sm font-black uppercase tracking-wider text-amber-400 border-b border-slate-700 pb-2 mb-4">
-            2. Official Day-of Burial Timetable
+            2. Official Burial Programme Schedule (29th &amp; 30th October 2026)
           </h3>
 
           <div className="space-y-2 text-xs">
@@ -160,7 +161,12 @@ export const PrintableReport: React.FC = () => {
                     {act.order}
                   </span>
                   <div>
-                    <p className="font-bold text-white text-xs">{act.activity}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-white text-xs">{act.activity}</p>
+                      {act.day && (
+                        <span className="text-[10px] text-amber-400/90 font-medium">({act.day})</span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-slate-400">{act.location}</p>
                   </div>
                 </div>
@@ -179,37 +185,18 @@ export const PrintableReport: React.FC = () => {
             3. Workstream Leads & Emergency Contacts (Irrua)
           </h3>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-            <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Event Coordination</span>
-              <p className="font-bold text-white">Uwade Akhabue</p>
-              <p className="text-slate-400 text-[11px]">{settings.contactPhone}</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Treasurer & Records</span>
-              <p className="font-bold text-white">Otibhor Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 802 345 6789</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Mortuary & Escort</span>
-              <p className="font-bold text-white">Oziegbe E Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 807 567 8901</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Food & Hospitality</span>
-              <p className="font-bold text-white">Odion Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 809 678 9012</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Church & Liturgy</span>
-              <p className="font-bold text-white">Omozele Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 805 456 7890</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
-              <span className="text-[10px] text-slate-400 uppercase block">Residence Renovation</span>
-              <p className="font-bold text-white">Akhere Akhabue</p>
-              <p className="text-slate-400 text-[11px]">+234 814 789 0123</p>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
+            {familyMembers
+              .filter((m) => m.id !== "m-08" && m.name !== "Family Committee Admin")
+              .map((member) => (
+                <div key={member.id} className="bg-slate-950 p-2.5 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-slate-400 uppercase block truncate">
+                    {member.assignedRole || member.relationship}
+                  </span>
+                  <p className="font-bold text-white truncate">{member.name}</p>
+                  <p className="text-amber-300 font-mono text-[11px] truncate">{member.phone}</p>
+                </div>
+              ))}
           </div>
         </div>
 

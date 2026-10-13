@@ -24,12 +24,11 @@ export const ContributionsTracker: React.FC = () => {
     financialMetrics,
     userRole,
     canEdit,
+    familyMembers,
   } = usePlanner();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [relationship, setRelationship] = useState("");
-  const [location, setLocation] = useState("");
+  const [selectedMemberId, setSelectedMemberId] = useState("");
   const [promisedAmount, setPromisedAmount] = useState("");
   const [receivedAmount, setReceivedAmount] = useState("");
   const [directPurchases, setDirectPurchases] = useState("");
@@ -38,12 +37,10 @@ export const ContributionsTracker: React.FC = () => {
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canEdit) return;
-    if (!name.trim() || !promisedAmount) return;
+    if (!promisedAmount) return;
 
     addContribution({
-      contributorName: name.trim(),
-      relationship: relationship.trim() || "Sibling",
-      location: location.trim() || "Nigeria",
+      memberId: selectedMemberId || undefined,
       promisedAmount: Number(promisedAmount),
       receivedAmount: Number(receivedAmount) || 0,
       directPurchasesAmount: Number(directPurchases) || 0,
@@ -56,9 +53,7 @@ export const ContributionsTracker: React.FC = () => {
     });
 
     setIsAddOpen(false);
-    setName("");
-    setRelationship("");
-    setLocation("");
+    setSelectedMemberId("");
     setPromisedAmount("");
     setReceivedAmount("");
     setDirectPurchases("");
@@ -153,12 +148,16 @@ export const ContributionsTracker: React.FC = () => {
               {contributions.map((c) => {
                 const recognized = c.receivedAmount + c.directPurchasesAmount;
                 const outstanding = Math.max(0, c.promisedAmount - recognized);
+                const member = familyMembers.find((m) => m.id === c.memberId);
+                const displayName = member ? member.name : (c.notes || "Family Member");
+                const displayRelationship = member ? member.relationship : "Family Sibling";
+                const displayLocation = member ? member.branch : "Edo State";
 
                 return (
                   <tr key={c.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 px-4 font-bold text-white text-xs">
-                      {c.contributorName}
-                      {c.notes && (
+                      {displayName}
+                      {c.notes && member && (
                         <div className="text-[10px] text-slate-400 font-normal italic truncate max-w-xs mt-0.5">
                           {c.notes}
                         </div>
@@ -166,8 +165,8 @@ export const ContributionsTracker: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4 text-slate-300">
-                      <div>{c.relationship}</div>
-                      <div className="text-[10px] text-slate-400">{c.location}</div>
+                      <div>{displayRelationship}</div>
+                      <div className="text-[10px] text-slate-400">{displayLocation}</div>
                     </td>
 
                     <td className="py-3 px-4 font-mono font-medium">
@@ -247,43 +246,23 @@ export const ContributionsTracker: React.FC = () => {
             <form onSubmit={handleAdd} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Contributor Name *
+                  Sibling / Family Member *
                 </label>
-                <input
-                  type="text"
+                <select
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Brother Efe Akhabue"
+                  value={selectedMemberId}
+                  onChange={(e) => setSelectedMemberId(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-400"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Relationship
-                  </label>
-                  <input
-                    type="text"
-                    value={relationship}
-                    onChange={(e) => setRelationship(e.target.value)}
-                    placeholder="e.g. 4th Sibling"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Location / Base
-                  </label>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. Abuja / London"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-400"
-                  />
-                </div>
+                >
+                  <option value="">Select sibling or family member...</option>
+                  {familyMembers
+                    .filter((m) => m.id !== "m-08" && m.name !== "Family Committee Admin")
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} — {m.relationship} ({m.branch})
+                      </option>
+                    ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-3 gap-3">

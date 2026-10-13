@@ -23,9 +23,5 @@ function AboutPageContent() {
 }
 
 export default function AboutPage() {
-  return (
-    <PlannerProvider>
-      <AboutPageContent />
-    </PlannerProvider>
-  );
+  return <AboutPageContent />;
 }

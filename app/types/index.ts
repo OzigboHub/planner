@@ -41,9 +41,7 @@ export interface BudgetItem {
 
 export interface Contribution {
   id: string;
-  contributorName: string;
-  relationship: string;
-  location: string;
+  memberId?: string;
   promisedAmount: number;
   receivedAmount: number;
   directPurchasesAmount: number;
@@ -109,6 +107,8 @@ export interface VendorItem {
 export interface ProgrammeActivity {
   order: number;
   id: string;
+  day?: string;
+  date?: string;
   activity: string;
   time: string;
   duration: string;
@@ -171,8 +171,10 @@ export interface AuditLogEntry {
 export interface EventSettings {
   eventTitle: string;
   honoree: string;
+  honoreeAge?: number;
   honoreeEpitaph: string;
   date: string;
+  vigilDate?: string;
   churchVenue: string;
   churchAddress: string;
   residenceVenue: string;
@@ -204,7 +206,7 @@ export interface FamilyMember {
   email?: string;
   location?: string;
   assignedRole?: string; // e.g. "Diaspora Advisory Lead", "Committee Treasurer", "Church Liturgy"
-  loginCode: string; // Unique access code created by Admin (e.g. "OSAS-2026", "JUDE-2026")
+  loginCode: string; // Unique 6-digit access PIN created by Admin (e.g. "261001", "261030")
   status: "Active" | "Pending" | "Invited";
   permission: PermissionLevel; // Default: "view_only", Admin-controlled: "view_and_edit"
   createdAt: string;

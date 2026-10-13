@@ -64,11 +64,14 @@ export const GuestMemorialHero: React.FC = () => {
 
         {/* Solemn Header Text */}
         <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-amber-400 mb-2">
-          In Loving & Blessed Memory of
+          In Loving &amp; Blessed Memory of
         </p>
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 drop-shadow-sm font-serif">
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-2 drop-shadow-sm font-serif">
           {settings.honoree}
         </h1>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs sm:text-sm font-semibold mb-4">
+          <span>Aged 74 Years</span>
+        </div>
         <p className="italic text-slate-300 max-w-2xl mx-auto text-sm sm:text-base font-light mb-8 px-4 border-l-2 border-r-2 border-amber-500/40 py-1">
           &ldquo;{settings.honoreeEpitaph}&rdquo;
         </p>
@@ -76,21 +79,21 @@ export const GuestMemorialHero: React.FC = () => {
         {/* Event Meta Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-3xl mx-auto mb-10 text-left">
           <div className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:border-amber-400/40 transition-colors">
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Date of Service</p>
-            <p className="text-sm font-bold text-white mt-1">Friday, 30 October 2026</p>
-            <p className="text-[11px] text-amber-300 mt-0.5">One-Day Solemn Burial</p>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Dates of Service</p>
+            <p className="text-sm font-bold text-white mt-1">29th &amp; 30th October 2026</p>
+            <p className="text-[11px] text-amber-300 mt-0.5">Vigil Mass &amp; Funeral Service</p>
           </div>
 
           <div className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:border-amber-400/40 transition-colors">
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Commencement</p>
-            <p className="text-sm font-bold text-white mt-1">09:00 AM Mortuary</p>
-            <p className="text-[11px] text-blue-300 mt-0.5">10:00 AM Funeral Mass</p>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Liturgical Hours</p>
+            <p className="text-sm font-bold text-white mt-1">Oct 29: 5:00 PM Vigil</p>
+            <p className="text-[11px] text-blue-300 mt-0.5">Oct 30: 11:00 AM Funeral Mass</p>
           </div>
 
           <div className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:border-amber-400/40 transition-colors">
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Primary Location</p>
             <p className="text-sm font-bold text-white mt-1">Eidenu, Irrua, Edo State</p>
-            <p className="text-[11px] text-emerald-300 mt-0.5">St. Matthew Parish & Akhabue Compound</p>
+            <p className="text-[11px] text-emerald-300 mt-0.5">St. Matthew Parish &amp; Akhabue Compound</p>
           </div>
         </div>
 

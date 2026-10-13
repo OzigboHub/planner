@@ -23,9 +23,5 @@ function ProgrammePageContent() {
 }
 
 export default function ProgrammePage() {
-  return (
-    <PlannerProvider>
-      <ProgrammePageContent />
-    </PlannerProvider>
-  );
+  return <ProgrammePageContent />;
 }

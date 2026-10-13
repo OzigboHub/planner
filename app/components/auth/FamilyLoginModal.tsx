@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { usePlanner } from "../../context/PlannerContext";
 import {
   Lock,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 
 export const FamilyLoginModal: React.FC = () => {
+  const router = useRouter();
   const {
     isAuthModalOpen,
     setIsAuthModalOpen,
@@ -68,12 +70,13 @@ export const FamilyLoginModal: React.FC = () => {
     }
 
     if (!success) {
-      setErrorMsg("Access Denied: Unrecognized credentials. Please verify your details.");
+      setErrorMsg("Access Denied: Unrecognized credentials. Please verify your registered details.");
     } else {
       setIdentifier("");
       setPasscode("");
       setCurrentView("family");
       setIsAuthModalOpen(false);
+      router.push("/planning");
     }
   };
 
@@ -144,13 +147,15 @@ export const FamilyLoginModal: React.FC = () => {
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
               <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-              <span>Password / Access PIN</span>
+              <span>Password / 6-Digit Access PIN</span>
             </label>
             <input
               type="password"
+              inputMode="numeric"
+              maxLength={10}
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
-              placeholder="Enter passcode (if required)..."
+              placeholder="Enter 6-digit access PIN..."
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"
             />
           </div>

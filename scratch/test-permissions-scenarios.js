@@ -15,8 +15,8 @@ const initialFamilyMembers = [
     name: "Uwade Akhabue",
     relationship: "1st Sibling • Son",
     branch: "Irrua / Central Branch",
-    phone: "+234 803 234 5678",
-    loginCode: "UWADE-2026",
+    phone: "07069439011",
+    loginCode: "261001",
     permission: "view_only",
     status: "Active",
   },
@@ -25,8 +25,8 @@ const initialFamilyMembers = [
     name: "Otibhor Akhabue",
     relationship: "2nd Sibling • Daughter",
     branch: "Lagos Branch",
-    phone: "+234 802 345 6789",
-    loginCode: "OTIBHOR-2026",
+    phone: "07060651998",
+    loginCode: "261002",
     permission: "view_only",
     status: "Active",
   },
@@ -35,8 +35,8 @@ const initialFamilyMembers = [
     name: "Omozele Akhabue",
     relationship: "3rd Sibling • Daughter",
     branch: "Benin City Branch",
-    phone: "+234 805 456 7890",
-    loginCode: "OMOZELE-2026",
+    phone: "08142460889",
+    loginCode: "261003",
     permission: "view_only",
     status: "Active",
   },
@@ -45,38 +45,48 @@ const initialFamilyMembers = [
     name: "Oziegbe E Akhabue",
     relationship: "4th Sibling • Son",
     branch: "Abuja Branch",
-    phone: "+234 807 567 8901",
-    loginCode: "OZIEGBE-2026",
+    phone: "08163390013",
+    loginCode: "261004",
     permission: "view_only",
     status: "Active",
   },
   {
     id: "m-05",
-    name: "Odion Akhabue",
+    name: "Odion Okoruwa",
     relationship: "5th Sibling • Twin",
     branch: "Warri Branch",
-    phone: "+234 809 678 9012",
-    loginCode: "ODION-2026",
+    phone: "+233 53 479 3286",
+    loginCode: "261005",
     permission: "view_only",
     status: "Active",
   },
   {
     id: "m-06",
-    name: "Akhere Akhabue",
+    name: "Akhere Okoruwa",
     relationship: "6th Sibling • Twin",
     branch: "Port Harcourt Branch",
-    phone: "+234 814 789 0123",
-    loginCode: "AKHERE-2026",
+    phone: "07011978288",
+    loginCode: "261006",
     permission: "view_only",
     status: "Active",
   },
   {
     id: "m-07",
+    name: "Uncle Lucky Kadiri",
+    relationship: "Family Elder & Committee Patron",
+    branch: "Edo State / Family Elder",
+    phone: "08064521855",
+    loginCode: "261007",
+    permission: "view_only",
+    status: "Active",
+  },
+  {
+    id: "m-08",
     name: "Family Committee Admin",
     relationship: "Executive Committee Coordinator",
     branch: "Central Secretariat",
     phone: "+234 801 000 0001",
-    loginCode: "ADMIN-2026",
+    loginCode: "261030",
     permission: "view_and_edit",
     status: "Active",
   },
@@ -142,16 +152,27 @@ class PlanningPermissionSystemSimulator {
   }
 
   loginWithPhoneAndCode(phoneInput, codeInput) {
-    const cleanPhone = phoneInput.replace(/[^0-9]/g, "");
+    const normalizeDigits = (str) => {
+      let d = str.replace(/[^0-9]/g, "");
+      if (d.startsWith("234") && d.length > 10) d = d.slice(3);
+      if (d.startsWith("233") && d.length > 9) d = d.slice(3);
+      if (d.startsWith("0")) d = d.replace(/^0+/, "");
+      return d;
+    };
+
+    const cleanInputDigits = normalizeDigits(phoneInput);
+    const rawCleanDigits = phoneInput.replace(/[^0-9]/g, "");
     const cleanCode = codeInput.trim().toUpperCase();
 
     const matched = this.familyMembers.find((m) => {
-      const memberCleanPhone = (m.phone || "").replace(/[^0-9]/g, "");
-      if (!memberCleanPhone) return false;
+      const memberClean = normalizeDigits(m.phone || "");
+      const memberRaw = (m.phone || "").replace(/[^0-9]/g, "");
+      if (!memberClean && !memberRaw) return false;
       const phoneMatches =
-        memberCleanPhone.endsWith(cleanPhone) ||
-        cleanPhone.endsWith(memberCleanPhone) ||
-        (cleanPhone.length >= 7 && memberCleanPhone.slice(-7) === cleanPhone.slice(-7));
+        memberClean === cleanInputDigits ||
+        memberRaw.endsWith(rawCleanDigits) ||
+        rawCleanDigits.endsWith(memberRaw) ||
+        (rawCleanDigits.length >= 7 && memberRaw.slice(-7) === rawCleanDigits.slice(-7));
       const codeMatches = m.loginCode.trim().toUpperCase() === cleanCode;
       return phoneMatches && codeMatches;
     });
@@ -160,7 +181,7 @@ class PlanningPermissionSystemSimulator {
       this.isFamilyAuthenticated = true;
       this.authenticatedMemberId = matched.id;
       this.authenticatedMember = matched.name;
-      this.userRole = matched.loginCode === "ADMIN-2026" ? "admin" : "sibling";
+      this.userRole = (matched.loginCode === "261030" || matched.loginCode === "ADMIN-2026") ? "admin" : "sibling";
       this.currentView = "family";
       this.addAudit("Login Success", `${matched.name} authenticated with phone & code`);
       return true;
@@ -253,10 +274,10 @@ if (unauthViewBlocked && !unauthEditAttempt && unauthAuditLogged) {
   console.error("  ✗ FAIL: Unregistered visitor was able to access or mutate!");
 }
 
-// SCENARIO 1: A registered child with view-only access logs in with phone + code
-console.log("\n▶ [TEST 1] Registered child (Uwade Akhabue) with default view-only access logs in via phone + code...");
-const loginSuccess = system.loginWithPhoneAndCode("08032345678", "UWADE-2026");
-console.log("  Login result with phone (08032345678) & code (UWADE-2026):", loginSuccess);
+// SCENARIO 1: A registered child with view-only access logs in with phone + 6-digit PIN
+console.log("\n▶ [TEST 1] Registered child (Uwade Akhabue) with default view-only access logs in via phone + 6-digit PIN...");
+const loginSuccess = system.loginWithPhoneAndCode("07069439011", "261001");
+console.log("  Login result with phone (07069439011) & PIN (261001):", loginSuccess);
 console.log("  Logged-in User:", system.authenticatedMember, "| Role:", system.userRole, "| Permission:", system.getUserPermission());
 console.log("  Can User Edit?:", system.canEdit());
 
@@ -276,14 +297,14 @@ if (loginSuccess && canViewPlan && !system.canEdit() && !addAttempt && !editAtte
 // SCENARIO 2: A user granted edit access by admin can make authorized changes
 console.log("\n▶ [TEST 2] Admin grants edit access to Otibhor Akhabue; Otibhor makes authorized modifications...");
 system.logout();
-system.loginWithPhoneAndCode("08010000001", "ADMIN-2026");
+system.loginWithPhoneAndCode("08010000001", "261030");
 console.log("  Admin logged in:", system.authenticatedMember, "| isAdmin:", system.isAdmin());
 
 const grantResult = system.adminUpdatePermission("m-02", "view_and_edit");
 console.log("  Admin granting edit access to Otibhor (m-02):", grantResult);
 
 system.logout();
-system.loginWithPhoneAndCode("08023456789", "OTIBHOR-2026");
+system.loginWithPhoneAndCode("07060651998", "261002");
 console.log("  Otibhor logged in after grant. Permission:", system.getUserPermission(), "| Can Edit?:", system.canEdit());
 
 const authorizedAdd = system.addTask("Authorized Canopies & Stage Contract Booking");
@@ -299,12 +320,12 @@ if (system.canEdit() && authorizedAdd && authorizedEdit && system.tasks.some((t)
 // SCENARIO 3: A user whose edit access has been revoked can no longer make changes
 console.log("\n▶ [TEST 3] Admin revokes edit access from Otibhor; she immediately loses modification rights...");
 system.logout();
-system.loginWithPhoneAndCode("08010000001", "ADMIN-2026");
+system.loginWithPhoneAndCode("08010000001", "261030");
 const revokeResult = system.adminUpdatePermission("m-02", "view_only");
 console.log("  Admin revoking Otibhor's edit permission back to view_only:", revokeResult);
 
 system.logout();
-system.loginWithPhoneAndCode("08023456789", "OTIBHOR-2026");
+system.loginWithPhoneAndCode("07060651998", "261002");
 console.log("  Otibhor logged in after revocation. Permission:", system.getUserPermission(), "| Can Edit?:", system.canEdit());
 
 const blockedAddAfterRevocation = system.addTask("Illegal Task Attempted After Revocation");
@@ -324,26 +345,32 @@ const directBypassAttempt = system.addTask("Direct Console Injection Test");
 const bypassBlocked = directBypassAttempt === false && system.tasks.length === bypassTaskCountBefore;
 
 system.logout();
-system.loginWithPhoneAndCode("08010000001", "ADMIN-2026");
+system.loginWithPhoneAndCode("08010000001", "261030");
 const newMember = system.adminRegisterChild({
   name: "Oziegbe E Akhabue",
   relationship: "4th Sibling • Son",
   phone: "+234 807 567 8901",
-  loginCode: "OZIEGBE-2026",
+  loginCode: "261004",
 });
 console.log("  Newly registered sibling:", newMember.name, "| Assigned Permission:", newMember.permission);
 const defaultIsViewOnly = newMember.permission === "view_only";
 
 system.logout();
-system.loginWithPhoneAndCode("08032345678", "UWADE-2026");
+system.loginWithPhoneAndCode("07069439011", "261001");
 const nonAdminRegisterAttempt = system.adminRegisterChild({
   name: "Attacker Added Member",
-  loginCode: "HACK-9999",
+  loginCode: "999999",
 });
 const nonAdminBlocked = nonAdminRegisterAttempt === null;
 
-if (bypassBlocked && defaultIsViewOnly && nonAdminBlocked) {
-  console.log("  ✓ PASS: Direct mutation bypass rejected, new registrations default to view_only, non-admin blocked.");
+// Verify Odion Okoruwa (+233 53 479 3286) and Uncle Lucky Kadiri (08064521855)
+system.logout();
+const odionLogin = system.loginWithPhoneAndCode("0534793286", "261005");
+system.logout();
+const luckyLogin = system.loginWithPhoneAndCode("08064521855", "261007");
+
+if (bypassBlocked && defaultIsViewOnly && nonAdminBlocked && odionLogin && luckyLogin) {
+  console.log("  ✓ PASS: Direct mutation bypass rejected, new registrations default to view_only, non-admin blocked, Odion & Uncle Lucky Kadiri logins verified.");
   testsPassed++;
 } else {
   console.error("  ✗ FAIL: Bypass protection or admin constraint failed!");

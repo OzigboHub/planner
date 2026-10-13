@@ -73,6 +73,11 @@ export const ProgrammeEditor: React.FC = () => {
                   <h3 className="text-base font-bold text-white">
                     {act.activity}
                   </h3>
+                  {act.day && (
+                    <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 text-[10px] font-semibold border border-purple-500/20">
+                      {act.day}
+                    </span>
+                  )}
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-xs font-semibold border border-amber-500/20 font-mono">
                     {act.time} ({act.duration})
                   </span>
@@ -167,6 +172,34 @@ export const ProgrammeEditor: React.FC = () => {
                   onChange={(e) => setEditItem({ ...editItem, activity: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Event Day / Section
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. October 29th – Vigil Mass"
+                    value={editItem.day || ""}
+                    onChange={(e) => setEditItem({ ...editItem, day: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Date
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Thursday, 29 October 2026"
+                    value={editItem.date || ""}
+                    onChange={(e) => setEditItem({ ...editItem, date: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

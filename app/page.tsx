@@ -33,9 +33,5 @@ function PlannerApp() {
 }
 
 export default function Home() {
-  return (
-    <PlannerProvider>
-      <PlannerApp />
-    </PlannerProvider>
-  );
+  return <PlannerApp />;
 }

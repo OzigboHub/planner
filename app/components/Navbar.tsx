@@ -91,6 +91,7 @@ export const Navbar: React.FC = () => {
   const pathname = usePathname();
 
   const navLinks = [
+    { href: "/planning", label: "Planning Portal" },
     { href: "/order-of-mass", label: "Order of Mass" },
     { href: "/programme", label: "Burial Programme" },
     { href: "/about", label: "About Pa Festus" },
@@ -102,8 +103,7 @@ export const Navbar: React.FC = () => {
   const countdownText = `${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m to Burial`;
 
   const viewButtonClass = (active: boolean, activeColors: string) =>
-    `flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-      active ? `${activeColors} font-semibold shadow-md` : "text-slate-400 hover:text-white"
+    `flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${active ? `${activeColors} font-semibold shadow-md` : "text-slate-400 hover:text-white"
     }`;
 
   return (
@@ -135,13 +135,12 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-2.5 py-1.5 rounded-lg transition-colors ${
-                    isActive
+                  className={`px-2.5 py-1.5 rounded-lg transition-colors ${isActive
                       ? "bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/40"
                       : isOrderOfMass
-                      ? "text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 font-medium"
-                      : "text-slate-300 hover:text-white hover:bg-slate-800/60"
-                  }`}
+                        ? "text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 font-medium"
+                        : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -161,20 +160,20 @@ export const Navbar: React.FC = () => {
             {isFamilyAuthenticated ? (
               <>
                 <div className="flex p-1 bg-slate-900/90 rounded-xl border border-white/10">
-                  <button
+                  <Link
                     id="btn-guest-view"
-                    onClick={() => setCurrentView("guest")}
-                    className={viewButtonClass(currentView === "guest", "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950")}
+                    href="/"
+                    className={viewButtonClass(pathname === "/", "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold")}
                   >
                     <span>Memorial</span>
-                  </button>
-                  <button
+                  </Link>
+                  <Link
                     id="btn-family-dashboard"
-                    onClick={() => setCurrentView("family")}
-                    className={viewButtonClass(currentView === "family", "bg-gradient-to-r from-blue-600 to-indigo-600 text-white")}
+                    href="/planning"
+                    className={viewButtonClass(pathname === "/planning" || pathname === "/portal", "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold")}
                   >
                     <span>Planning</span>
-                  </button>
+                  </Link>
                 </div>
 
                 {/* Single account menu holds everything else */}
@@ -182,19 +181,17 @@ export const Navbar: React.FC = () => {
                   <button
                     id="btn-account-menu"
                     onClick={() => setAccountMenuOpen((o) => !o)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-colors ${
-                      canEdit
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-colors ${canEdit
                         ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20"
                         : "bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20"
-                    }`}
+                      }`}
                   >
                     <span className="max-w-[120px] truncate">{authenticatedMember}</span>
                     <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                        canEdit
+                      className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${canEdit
                           ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                           : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                      }`}
+                        }`}
                     >
                       {canEdit ? "Edit" : "View Only"}
                     </span>
@@ -210,11 +207,10 @@ export const Navbar: React.FC = () => {
                           <p className="text-sm text-white font-semibold truncate">{authenticatedMember}</p>
                           <div className="mt-1.5 flex items-center gap-1.5">
                             <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-                                canEdit
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${canEdit
                                   ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
                                   : "bg-amber-500/10 text-amber-300 border-amber-500/30"
-                              }`}
+                                }`}
                             >
                               <span>{canEdit ? "View & Edit Authorized" : "View-Only (Default)"}</span>
                             </span>
@@ -259,16 +255,15 @@ export const Navbar: React.FC = () => {
                 </div>
               </>
             ) : (
-              <button
+              <Link
                 id="btn-nav-planning-gate"
-                onClick={() => {
-                  setIsAuthModalOpen(true);
-                }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs whitespace-nowrap transition-all shadow-md shadow-indigo-600/20 border border-white/10"
-                title="Access burial planning and checklist"
+                href="/planning"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs whitespace-nowrap transition-all shadow-md shadow-indigo-600/20 border border-white/10 flex items-center gap-1.5"
+                title="Access confidential family burial planning"
               >
-                Planning
-              </button>
+                <Lock className="w-3.5 h-3.5 text-amber-300" />
+                <span>Planning Login</span>
+              </Link>
             )}
 
             {/* Invite Guest Button (Hidden when opening via invitation link) */}
@@ -339,26 +334,22 @@ export const Navbar: React.FC = () => {
 
               {/* View Switcher */}
               <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900/90 rounded-xl border border-white/10">
-                <button
+                <Link
                   id="btn-mobile-memorial-view"
-                  onClick={() => {
-                    setCurrentView("guest");
-                    setMobileMenuOpen(false);
-                  }}
-                  className={viewButtonClass(currentView === "guest", "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold")}
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={viewButtonClass(pathname === "/", "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold")}
                 >
                   <Heart className="w-3.5 h-3.5" /> Memorial
-                </button>
-                <button
+                </Link>
+                <Link
                   id="btn-mobile-planning-view"
-                  onClick={() => {
-                    setCurrentView("family");
-                    setMobileMenuOpen(false);
-                  }}
-                  className={viewButtonClass(currentView === "family", "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold")}
+                  href="/planning"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={viewButtonClass(pathname === "/planning" || pathname === "/portal", "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold")}
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" /> Planning
-                </button>
+                </Link>
               </div>
 
               {/* Navigation Links */}
@@ -371,11 +362,10 @@ export const Navbar: React.FC = () => {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-medium transition-colors ${
-                        isActive
+                      className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-medium transition-colors ${isActive
                           ? "bg-amber-500/15 border border-amber-500/40 text-amber-300 font-semibold"
                           : "bg-slate-900/80 border border-slate-800/80 text-slate-200 hover:text-white hover:bg-slate-800"
-                      }`}
+                        }`}
                     >
                       <span>{link.label}</span>
                       <span className="text-slate-500 text-xs">→</span>
@@ -419,11 +409,10 @@ export const Navbar: React.FC = () => {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-medium transition-colors ${
-                        isActive
+                      className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-medium transition-colors ${isActive
                           ? "bg-amber-500/15 border border-amber-500/40 text-amber-300 font-semibold"
                           : "bg-slate-900/80 border border-slate-800/80 text-slate-200 hover:text-white hover:bg-slate-800"
-                      }`}
+                        }`}
                     >
                       <span>{link.label}</span>
                       <span className="text-slate-500 text-xs">→</span>
@@ -434,12 +423,10 @@ export const Navbar: React.FC = () => {
 
               {/* Family Planning Portal Link */}
               <div className="pt-2 border-t border-white/10">
-                <button
+                <Link
                   id="btn-mobile-planning-portal"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setIsAuthModalOpen(true);
-                  }}
+                  href="/planning"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="w-full flex items-center justify-between px-3.5 py-3 rounded-xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-blue-900/20 border border-blue-500/30 text-blue-200 hover:text-white hover:border-blue-500/50 transition-all font-medium text-xs"
                 >
                   <div className="text-left">
@@ -447,7 +434,7 @@ export const Navbar: React.FC = () => {
                     <div className="text-[10px] text-blue-300/70">Children login &amp; checklist</div>
                   </div>
                   <span className="text-xs text-blue-400 font-semibold">Access →</span>
-                </button>
+                </Link>
               </div>
             </div>
           )}

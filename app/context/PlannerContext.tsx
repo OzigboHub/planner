@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import {
   BudgetItem,
   Contribution,
@@ -147,7 +147,7 @@ interface PlannerContextType {
 
 const PlannerContext = createContext<PlannerContextType | undefined>(undefined);
 
-const STORAGE_PREFIX = "akhabue_burial_planner_v3_";
+const STORAGE_PREFIX = "akhabue_burial_planner_v5_";
 
 export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentView, setCurrentView] = useState<"guest" | "family">("guest");
@@ -181,16 +181,27 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Load from localStorage if present
   useEffect(() => {
     try {
+      // Purge legacy storage caches with dummy non-zero amounts
+      ["v1_", "v2_", "v3_", "v4_"].forEach((ver) => {
+        try {
+          localStorage.removeItem(`akhabue_burial_planner_${ver}budget`);
+          localStorage.removeItem(`akhabue_burial_planner_${ver}contributions`);
+          localStorage.removeItem(`akhabue_burial_planner_${ver}tasks`);
+          localStorage.removeItem(`akhabue_burial_planner_${ver}shopping`);
+          localStorage.removeItem(`akhabue_burial_planner_${ver}renovation`);
+        } catch {}
+      });
+
       const savedMembers = localStorage.getItem(STORAGE_PREFIX + "members");
       if (savedMembers) {
         const parsed = JSON.parse(savedMembers);
-        const hasOldPlaceholder =
-          Array.isArray(parsed) &&
-          parsed.some(
-            (m: FamilyMember) =>
-              m.name === "Dr. Osas Akhabue" || m.name === "Barr. Jude Akhabue"
-          );
-        if (hasOldPlaceholder) {
+        const needsRefresh =
+          !Array.isArray(parsed) ||
+          !parsed.some((m: FamilyMember) => m.loginCode === "261001") ||
+          !parsed.some((m: FamilyMember) => m.loginCode === "261030") ||
+          !parsed.some((m: FamilyMember) => m.loginCode === "261008") ||
+          !parsed.some((m: FamilyMember) => m.loginCode === "261009");
+        if (needsRefresh) {
           setFamilyMembers(initialFamilyMembers);
           localStorage.setItem(STORAGE_PREFIX + "members", JSON.stringify(initialFamilyMembers));
         } else {
@@ -199,53 +210,32 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       const savedSettings = localStorage.getItem(STORAGE_PREFIX + "settings");
-      if (savedSettings) setSettings(JSON.parse(savedSettings));
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        setSettings({
+          ...initialEventSettings,
+          ...parsed,
+          honoree: "Late Mr. Festus Okoruwa Akhabue",
+          honoreeAge: 74,
+          vigilDate: "2026-10-29",
+        });
+      }
 
       const savedBudget = localStorage.getItem(STORAGE_PREFIX + "budget");
       if (savedBudget) {
         const parsed = JSON.parse(savedBudget);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const cleaned = parsed.map((item: BudgetItem) => {
-            const { assignedLead: _lead, ...rest } = item;
-            return {
-              ...rest,
-              isDone: rest.isDone !== undefined ? rest.isDone : rest.paidStatus === "Paid",
-            };
-          });
-          setBudgetItems(cleaned);
-          localStorage.setItem(STORAGE_PREFIX + "budget", JSON.stringify(cleaned));
+          setBudgetItems(parsed);
         } else {
           setBudgetItems(initialBudgetItems);
         }
+      } else {
+        setBudgetItems(initialBudgetItems);
       }
 
-      const savedContrib = localStorage.getItem(STORAGE_PREFIX + "contributions");
-      if (savedContrib) {
-        const parsed = JSON.parse(savedContrib);
-        const hasOldPlaceholder =
-          Array.isArray(parsed) &&
-          parsed.some((c: Contribution) => c.contributorName === "Dr. Osas Akhabue");
-        if (hasOldPlaceholder) {
-          setContributions(initialContributions);
-          localStorage.setItem(STORAGE_PREFIX + "contributions", JSON.stringify(initialContributions));
-        } else {
-          setContributions(parsed);
-        }
-      }
-
-      const savedTasks = localStorage.getItem(STORAGE_PREFIX + "tasks");
-      if (savedTasks) {
-        const parsed = JSON.parse(savedTasks);
-        const hasOldPlaceholder =
-          Array.isArray(parsed) &&
-          parsed.some((t: TaskItem) => t.assignedPerson === "Dr. Osas Akhabue" || t.assignedPerson === "Chinedu");
-        if (hasOldPlaceholder) {
-          setTasks(initialTasks);
-          localStorage.setItem(STORAGE_PREFIX + "tasks", JSON.stringify(initialTasks));
-        } else {
-          setTasks(parsed);
-        }
-      }
+      // Contributions and Tasks removed
+      setContributions([]);
+      setTasks([]);
 
       const savedShopping = localStorage.getItem(STORAGE_PREFIX + "shopping");
       if (savedShopping) setShoppingList(JSON.parse(savedShopping));
@@ -256,10 +246,13 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const savedProg = localStorage.getItem(STORAGE_PREFIX + "programme");
       if (savedProg) {
         const parsed = JSON.parse(savedProg);
-        const hasOldLead =
+        const hasVigil =
           Array.isArray(parsed) &&
-          parsed.some((p: ProgrammeActivity) => p.coordinator && p.coordinator.includes("Uncle Patrick"));
-        if (hasOldLead) {
+          parsed.some((p: ProgrammeActivity) => p.activity.toLowerCase().includes("vigil"));
+        const hasArrival =
+          Array.isArray(parsed) &&
+          parsed.some((p: ProgrammeActivity) => p.time === "10:00 AM" && p.activity.toLowerCase().includes("arrival"));
+        if (!hasVigil || !hasArrival) {
           setProgramme(initialProgramme);
           localStorage.setItem(STORAGE_PREFIX + "programme", JSON.stringify(initialProgramme));
         } else {
@@ -291,6 +284,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (savedMemberId) setAuthenticatedMemberId(savedMemberId);
         if (savedPhone) setAuthenticatedPhone(savedPhone);
         if (savedRole) setUserRole(savedRole);
+        setCurrentView("family");
       }
 
       // Check if viewing via invitation link
@@ -309,6 +303,112 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  // Synchronize state with central server so changes reflect across all children's devices
+  const syncWithServer = useCallback(async () => {
+    try {
+      const res = await fetch("/api/planner", { cache: "no-store" });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.success && json.data) {
+        const d = json.data;
+
+        // Check if server already has populated items or if local has admin modifications
+        const serverHasData =
+          Array.isArray(d.budget) &&
+          d.budget.some(
+            (b: BudgetItem) =>
+              (b.quotedAmount || 0) > 0 ||
+              (b.actualCost || 0) > 0 ||
+              (b.amountPaid || 0) > 0 ||
+              b.name === "D J" ||
+              b.isDone === true
+          );
+
+        const localSaved = localStorage.getItem(STORAGE_PREFIX + "budget");
+        let localHasData = false;
+        let localItems: BudgetItem[] = [];
+        if (localSaved) {
+          try {
+            localItems = JSON.parse(localSaved);
+            localHasData =
+              Array.isArray(localItems) &&
+              localItems.some(
+                (b: BudgetItem) =>
+                  (b.quotedAmount || 0) > 0 ||
+                  (b.actualCost || 0) > 0 ||
+                  (b.amountPaid || 0) > 0 ||
+                  b.name === "D J" ||
+                  b.isDone === true
+              );
+          } catch {}
+        }
+
+        if (!serverHasData && localHasData) {
+          // Push existing local admin changes up to server so all devices get them immediately!
+          await fetch("/api/planner", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: "budget", data: localItems }),
+          });
+          setBudgetItems(localItems);
+        } else if (Array.isArray(d.budget) && d.budget.length > 0) {
+          setBudgetItems(d.budget);
+          localStorage.setItem(STORAGE_PREFIX + "budget", JSON.stringify(d.budget));
+        }
+
+        if (Array.isArray(d.programme) && d.programme.length > 0) {
+          setProgramme(d.programme);
+          localStorage.setItem(STORAGE_PREFIX + "programme", JSON.stringify(d.programme));
+        }
+
+        if (d.settings) {
+          setSettings((prev) => ({ ...prev, ...d.settings }));
+          localStorage.setItem(STORAGE_PREFIX + "settings", JSON.stringify(d.settings));
+        }
+
+        if (Array.isArray(d.familyMembers) && d.familyMembers.length > 0) {
+          setFamilyMembers(d.familyMembers);
+          localStorage.setItem(STORAGE_PREFIX + "members", JSON.stringify(d.familyMembers));
+        }
+
+        if (Array.isArray(d.shopping)) {
+          setShoppingList(d.shopping);
+        }
+
+        if (Array.isArray(d.renovation)) {
+          setRenovationItems(d.renovation);
+        }
+
+        if (Array.isArray(d.vendors)) {
+          setVendors(d.vendors);
+        }
+      }
+    } catch {
+      // offline fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    // Initial fetch from server
+    syncWithServer();
+
+    // Re-sync when tab gains focus
+    const handleFocus = () => {
+      syncWithServer();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    // Auto-sync polling every 5 seconds so changes reflect across devices in real-time
+    const pollInterval = setInterval(() => {
+      syncWithServer();
+    }, 5000);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(pollInterval);
+    };
+  }, [syncWithServer]);
+
   const getInvitationUrl = () => {
     if (typeof window !== "undefined") {
       return `${window.location.origin}/invite`;
@@ -316,13 +416,22 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return "http://localhost:3005/invite";
   };
 
-  // Save changes
+  // Save changes locally and immediately broadcast to shared server
   const saveState = (key: string, data: unknown) => {
     try {
       localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(data));
     } catch {
       // storage quota or error
     }
+
+    // Send immediately to central server so all other devices reflect the change
+    fetch("/api/planner", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, data }),
+    }).catch((err) => {
+      console.warn("Failed to sync change to server:", err);
+    });
   };
 
   const addAudit = (action: string, details: string) => {
@@ -394,9 +503,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const isAdmin = userRole === "admin";
   const userPermission: PermissionLevel = isAdmin
     ? "view_and_edit"
-    : activeMemberObj?.permission || "view_only";
+    : "view_only";
 
-  const canEdit = isFamilyAuthenticated && (isAdmin || userPermission === "view_and_edit");
+  const canEdit = isFamilyAuthenticated && isAdmin;
 
   // Server/Context permission guards
   const guardEditPermission = (operation: string): boolean => {
@@ -494,8 +603,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const toggleBudgetItemDone = (id: string): boolean => {
-    if (!isAdmin) {
-      alert("Only the Administrator can tick what has been done and what is left.");
+    if (!isAdmin && !canEdit) {
+      alert("Only authorized committee coordinators can tick what has been done and what is left.");
       return false;
     }
     setBudgetItems((prev) => {
@@ -530,7 +639,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       saveState("contributions", next);
       return next;
     });
-    addAudit("Contribution Logged", `Logged contribution for ${newContrib.contributorName}`);
+    const memberName = familyMembers.find((m) => m.id === newContrib.memberId)?.name || newContrib.notes || "Family Member";
+    addAudit("Contribution Logged", `Logged contribution for ${memberName}`);
   };
 
   const updateContribution = (id: string, updates: Partial<Contribution>) => {
@@ -718,14 +828,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addAudit("Document Uploaded", `Added file: ${newDoc.title}`);
   };
 
-  const generateMemberCode = (name: string): string => {
-    const cleanName = name
-      .replace(/^(Dr\.|Barr\.|Engr\.|Sister|Brother|Aunty|Uncle|Chief|Prof\.)\s+/i, "")
-      .trim();
-    const firstWord = cleanName.split(/\s+/)[0] || "CHILD";
-    const prefix = firstWord.substring(0, 4).toUpperCase();
-    const randomDigits = Math.floor(1000 + Math.random() * 9000);
-    return `${prefix}-${randomDigits}`;
+  const generateMemberCode = (_name?: string): string => {
+    // Generate secure 6-digit numerical PIN (100000 - 999999)
+    return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
   const updateMemberPermission = (memberId: string, permission: PermissionLevel): boolean => {
@@ -793,20 +898,41 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const loginFamilyWithPhone = (phoneInput: string, passcode: string): boolean => {
-    const cleanPhone = phoneInput.replace(/[^0-9]/g, "");
+    const normalizeDigits = (str: string) => {
+      let d = str.replace(/[^0-9]/g, "");
+      if (d.startsWith("234") && d.length > 10) d = d.slice(3);
+      if (d.startsWith("233") && d.length > 9) d = d.slice(3);
+      if (d.startsWith("0")) d = d.replace(/^0+/, "");
+      return d;
+    };
+
+    const cleanInputDigits = normalizeDigits(phoneInput);
+    const rawCleanDigits = phoneInput.replace(/[^0-9]/g, "");
     const cleanCode = passcode.trim().toUpperCase();
 
-    if (!cleanPhone || !cleanCode) return false;
+    if (!cleanCode) return false;
 
-    // Match child by normalized phone and code
-    const matched = familyMembers.find((m) => {
-      const memberCleanPhone = (m.phone || "").replace(/[^0-9]/g, "");
-      if (!memberCleanPhone) return false;
+    // Search candidates in active members and fallback to initial roster
+    const allCandidates = [...familyMembers];
+    for (const initM of initialFamilyMembers) {
+      if (!allCandidates.some((c) => c.id === initM.id)) {
+        allCandidates.push(initM);
+      }
+    }
+
+    const matched = allCandidates.find((m) => {
+      const memberClean = normalizeDigits(m.phone || "");
+      const memberRaw = (m.phone || "").replace(/[^0-9]/g, "");
+      if (!memberClean && !memberRaw) return false;
       const phoneMatches =
-        memberCleanPhone.endsWith(cleanPhone) ||
-        cleanPhone.endsWith(memberCleanPhone) ||
-        (cleanPhone.length >= 7 && memberCleanPhone.slice(-7) === cleanPhone.slice(-7));
-      const codeMatches = m.loginCode.trim().toUpperCase() === cleanCode;
+        memberClean === cleanInputDigits ||
+        memberRaw.endsWith(rawCleanDigits) ||
+        rawCleanDigits.endsWith(memberRaw) ||
+        (rawCleanDigits.length >= 7 && memberRaw.slice(-7) === rawCleanDigits.slice(-7));
+      const codeMatches =
+        m.loginCode.trim().toUpperCase() === cleanCode ||
+        (m.loginCode === "261001" && cleanCode === "UWADE-2026") ||
+        (m.loginCode === "261030" && cleanCode === "ADMIN-2026");
       return phoneMatches && codeMatches;
     });
 
@@ -817,7 +943,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAuthenticatedPhone(matched.phone || phoneInput);
 
       const isExecutive =
-        matched.assignedRole?.includes("Executive") || matched.loginCode === "ADMIN-2026";
+        matched.assignedRole?.includes("Executive") ||
+        matched.loginCode === "261030" ||
+        matched.loginCode === "ADMIN-2026";
       setUserRole(isExecutive ? "admin" : "sibling");
 
       const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
@@ -829,6 +957,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         sessionStorage.setItem("akhabue_family_member_id", matched.id);
         sessionStorage.setItem("akhabue_family_member_phone", matched.phone || phoneInput);
         sessionStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
+        sessionStorage.setItem("akhabue_current_view", "family");
       } catch {}
 
       setCurrentView("family");
@@ -842,6 +971,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Admin bypass also supported with phone input if master code
     if (
+      cleanCode === "261030" ||
+      cleanCode === "261000" ||
       cleanCode === "AKHABUE2026" ||
       cleanCode === "2026" ||
       cleanCode === "ADMIN-2026"
@@ -873,8 +1004,18 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!clean) return false;
 
     // 1. Direct match with a member's personalized loginCode
-    const matchedMember = familyMembers.find(
-      (m) => m.loginCode.trim().toUpperCase() === clean
+    const allCandidates = [...familyMembers];
+    for (const initM of initialFamilyMembers) {
+      if (!allCandidates.some((c) => c.id === initM.id)) {
+        allCandidates.push(initM);
+      }
+    }
+
+    const matchedMember = allCandidates.find(
+      (m) =>
+        m.loginCode.trim().toUpperCase() === clean ||
+        (m.loginCode === "261001" && clean === "UWADE-2026") ||
+        (m.loginCode === "261030" && clean === "ADMIN-2026")
     );
 
     if (matchedMember) {
@@ -886,7 +1027,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAuthenticatedPhone(matchedMember.phone || null);
 
       const isExecutive =
-        matchedMember.assignedRole?.includes("Executive") || matchedMember.loginCode === "ADMIN-2026";
+        matchedMember.assignedRole?.includes("Executive") ||
+        matchedMember.loginCode === "261030" ||
+        matchedMember.loginCode === "ADMIN-2026";
       setUserRole(isExecutive ? "admin" : "sibling");
 
       // Record last login time
@@ -898,6 +1041,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         sessionStorage.setItem("akhabue_family_member", activeName);
         sessionStorage.setItem("akhabue_family_member_id", matchedMember.id);
         sessionStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
+        sessionStorage.setItem("akhabue_current_view", "family");
       } catch {}
       setCurrentView("family");
       setIsAuthModalOpen(false);
@@ -910,6 +1054,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // 2. Master passcodes for Admin & Committee emergency access
     if (
+      clean === "261030" ||
+      clean === "261000" ||
       clean === "AKHABUE2026" ||
       clean === "2026" ||
       clean === "AKHABUE" ||

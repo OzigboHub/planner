@@ -50,22 +50,8 @@ export const DashboardNav: React.FC = () => {
       id: "budget",
       label: "Budget & Expenses",
       icon: Calculator,
-      badge: "₦4.89M",
+      badge: "₦0",
       badgeColor: "bg-blue-500/20 text-blue-300",
-    },
-    {
-      id: "contributions",
-      label: "Sibling Contributions",
-      icon: Users,
-      badge: `${financialMetrics.fundingCoveragePercent}%`,
-      badgeColor: "bg-emerald-500/20 text-emerald-300",
-    },
-    {
-      id: "tasks",
-      label: "Workstreams & Tasks",
-      icon: CheckSquare,
-      badge: pendingTasksCount,
-      badgeColor: "bg-amber-500/20 text-amber-300",
     },
     { id: "purchases", label: "Shopping List", icon: ShoppingBag },
     {

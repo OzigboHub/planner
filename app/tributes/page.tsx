@@ -23,9 +23,5 @@ function TributesPageContent() {
 }
 
 export default function TributesPage() {
-  return (
-    <PlannerProvider>
-      <TributesPageContent />
-    </PlannerProvider>
-  );
+  return <TributesPageContent />;
 }

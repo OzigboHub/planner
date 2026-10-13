@@ -23,9 +23,5 @@ function OrderOfMassContent() {
 }
 
 export default function OrderOfMassPage() {
-  return (
-    <PlannerProvider>
-      <OrderOfMassContent />
-    </PlannerProvider>
-  );
+  return <OrderOfMassContent />;
 }

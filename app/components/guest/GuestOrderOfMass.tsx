@@ -18,7 +18,7 @@ export const GuestOrderOfMass: React.FC = () => {
             Order of Funeral Mass
           </h1>
           <p className="text-sm text-slate-300 mt-2">
-            In Solemn Memory of <strong>{settings.honoree}</strong> (1948 – 2026)
+            In Solemn Memory of <strong>{settings.honoree}</strong> (Aged 74 Years)
           </p>
           <p className="text-xs text-amber-300/90 mt-1">
             {settings.churchVenue} • Celebrant: Rev. Fr. Nicholas Oboh
@@ -42,7 +42,7 @@ export const GuestOrderOfMass: React.FC = () => {
               Introductory Rites &amp; Reception of the Body
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              At the Church Entrance • 10:00 AM
+              At the Church Entrance • 11:00 AM
             </p>
           </div>
 

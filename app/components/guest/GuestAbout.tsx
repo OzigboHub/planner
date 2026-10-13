@@ -38,7 +38,7 @@ export const GuestAbout: React.FC = () => {
           About {settings.honoree}
         </h2>
         <p className="text-sm sm:text-base text-slate-300 mt-3 leading-relaxed">
-          Celebrating a long, fruitful, and blessed earthly journey dedicated to the service of God, love of family, and upliftment of his beloved Eidenu community.
+          Celebrating 74 years of a long, fruitful, and blessed earthly journey dedicated to the service of God, love of family, and upliftment of his beloved Eidenu community.
         </p>
       </div>
 
@@ -59,10 +59,13 @@ export const GuestAbout: React.FC = () => {
               
               <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-slate-900/80 backdrop-blur-md border border-white/10 text-center">
                 <p className="text-xs font-bold text-amber-300 uppercase tracking-widest">
-                 Festus Okoruwa Akhabue
+                  {settings.honoree}
+                </p>
+                <p className="text-xs font-semibold text-amber-400 mt-0.5">
+                  Aged 74 Years
                 </p>
                 <p className="text-[11px] text-slate-300 mt-0.5">
-                  Beloved Father, Grandfather & Catholic Patriarch
+                  Beloved Father, Grandfather &amp; Catholic Patriarch
                 </p>
                 <p className="text-[10px] text-emerald-400 font-mono mt-1">
                   Eidenu, Irrua • Edo State, Nigeria
@@ -76,10 +79,10 @@ export const GuestAbout: React.FC = () => {
         <div className="lg:col-span-7 space-y-5">
           <div className="bg-slate-900/80 rounded-2xl p-6 sm:p-7 border border-white/10 space-y-4 shadow-xl">
             <div className="text-amber-400 text-xs font-semibold uppercase tracking-wider">
-              A Life of Grace & Purpose
+              A Life of Grace &amp; Purpose • Aged 74
             </div>
             <p className="text-sm text-slate-200 leading-relaxed">
-              <strong> Festus Okoruwa Akhabue</strong> was an embodiment of grace, quiet strength, and devout Christian discipleship. Born in the vibrant community of <strong>Eidenu, Irrua</strong>, he lived an honorable life rooted in humility, unwavering hard work, and deep reverence for the Almighty.
+              <strong>{settings.honoree}</strong> (aged 74) was an embodiment of grace, quiet strength, and devout Christian discipleship. Born in the vibrant community of <strong>Eidenu, Irrua</strong>, he lived an honorable life rooted in humility, unwavering hard work, and deep reverence for the Almighty.
             </p>
             <p className="text-sm text-slate-300 leading-relaxed">
               Throughout his life in Edo State, Festus stood as an unshakeable moral compass. At <strong>St. Matthew Catholic Church</strong>, he was a regular communicant, a quiet benefactor of parish projects, and a trusted supporter of the clergy. In his family, he led not with words alone, but with the shining example of personal righteousness, self-sacrifice, and warm hospitality.

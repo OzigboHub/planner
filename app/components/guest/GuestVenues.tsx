@@ -33,9 +33,9 @@ export const GuestVenues: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                Funeral Mass Venue
+                Vigil &amp; Funeral Mass Venue
               </span>
-              <span className="text-xs text-slate-400">10:00 AM – 12:00 PM</span>
+              <span className="text-xs text-slate-400">Oct 29 (5 PM) • Oct 30 (11 AM)</span>
             </div>
             <h3 className="text-xl font-bold text-white mb-2">
               {settings.churchVenue}
@@ -45,8 +45,10 @@ export const GuestVenues: React.FC = () => {
             </p>
 
             <div className="bg-slate-950/60 p-3.5 rounded-xl border border-white/5 space-y-2 text-xs text-slate-300 mb-5">
-              <p className="font-semibold text-amber-300">Key Landmarks & Transit Tips:</p>
+              <p className="font-semibold text-amber-300">Key Landmarks &amp; Transit Tips:</p>
               <ul className="list-disc list-inside space-y-1.5 text-slate-400">
+                <li><strong className="text-slate-200">October 29th (5:00 PM):</strong> Catholic Vigil Mass at church premises.</li>
+                <li><strong className="text-slate-200">October 30th (11:00 AM):</strong> Solemn Funeral Requiem Mass.</li>
                 <li><strong className="text-slate-200">Opposite Landmark:</strong> The church is situated directly opposite <strong>Udowo Primary School</strong>, Eidenu, Irrua.</li>
                 <li><strong className="text-amber-300">Navigation Note:</strong> Because the church building is not yet mapped separately on Google Maps, navigate to <strong>Udowo Primary School</strong> via the map button below.</li>
                 <li>Designated parish compound parking with traffic warden escorts.</li>
@@ -77,9 +79,9 @@ export const GuestVenues: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                Interment & Reception Grounds
+                Interment &amp; Reception Grounds
               </span>
-              <span className="text-xs text-slate-400">01:15 PM – Evening</span>
+              <span className="text-xs text-slate-400">Oct 30: 12:30 PM – 6:30 PM</span>
             </div>
             <h3 className="text-xl font-bold text-white mb-2">
               {settings.residenceVenue}

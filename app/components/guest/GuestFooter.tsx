@@ -17,7 +17,7 @@ export const GuestFooter: React.FC = () => {
             Eidenu, Irrua, Edo State • Contact: {settings.contactPhone}
           </p>
           <p className="text-[11px] text-slate-400 mt-2">
-            In Blessed &amp; Loving Memory of Festus Okoruwa Akhabue
+            In Blessed &amp; Loving Memory of {settings.honoree} (Aged 74)
           </p>
         </div>
 
