@@ -126,7 +126,7 @@ export const GuestProgramme: React.FC = () => {
 
       <div className="mt-10 p-5 rounded-2xl bg-blue-950/30 border border-blue-800/40 text-xs text-blue-200">
         <p>
-          <strong className="text-blue-300">Notice for Traveling Guests:</strong> Guests traveling along Benin-Auchi Expressway or from Ekpoma/Benin City are advised to arrive at Eidenu, Irrua in good time to allow ample time for parking at St. Matthew Catholic Church before the <strong>11:00 AM Funeral Mass</strong> begins promptly on Friday, October 30th.
+          <strong className="text-blue-300">Notice for Traveling Guests:</strong> Guests traveling along Benin-Auchi Expressway or from Ekpoma/Benin City are advised to arrive at Eidenu, Irrua in good time to allow ample time for parking at St Matthew Catholic Church before the <strong>11:00 AM Funeral Mass</strong> begins promptly on Friday, October 30th.
         </p>
       </div>
     </section>

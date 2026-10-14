@@ -33,62 +33,72 @@ export interface SharedPlannerData {
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const PLANNER_FILE = path.join(DATA_DIR, "planner.json");
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
 function ensurePlannerFile(): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(PLANNER_FILE)) {
-    const initialData: SharedPlannerData = {
-      budget: initialBudgetItems,
-      programme: initialProgramme,
-      settings: initialEventSettings,
-      familyMembers: initialFamilyMembers,
-      shopping: initialShoppingList,
-      renovation: initialRenovationItems,
-      vendors: initialVendors,
-      lastUpdated: new Date().toISOString(),
-    };
-    fs.writeFileSync(PLANNER_FILE, JSON.stringify(initialData, null, 2), "utf8");
+  if (isServerless) return;
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(PLANNER_FILE)) {
+      const initialData: SharedPlannerData = {
+        budget: initialBudgetItems,
+        programme: initialProgramme,
+        settings: initialEventSettings,
+        familyMembers: initialFamilyMembers,
+        shopping: initialShoppingList,
+        renovation: initialRenovationItems,
+        vendors: initialVendors,
+        lastUpdated: new Date().toISOString(),
+      };
+      fs.writeFileSync(PLANNER_FILE, JSON.stringify(initialData, null, 2), "utf8");
+    }
+  } catch {
+    // Read-only filesystem or restricted environment
   }
 }
 
 function getLocalPlannerData(): SharedPlannerData {
-  ensurePlannerFile();
   try {
-    const raw = fs.readFileSync(PLANNER_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    return {
-      budget: Array.isArray(parsed.budget) ? parsed.budget : initialBudgetItems,
-      programme: Array.isArray(parsed.programme) ? parsed.programme : initialProgramme,
-      settings: parsed.settings ? { ...initialEventSettings, ...parsed.settings } : initialEventSettings,
-      familyMembers: Array.isArray(parsed.familyMembers) ? parsed.familyMembers : initialFamilyMembers,
-      shopping: Array.isArray(parsed.shopping) ? parsed.shopping : initialShoppingList,
-      renovation: Array.isArray(parsed.renovation) ? parsed.renovation : initialRenovationItems,
-      vendors: Array.isArray(parsed.vendors) ? parsed.vendors : initialVendors,
-      lastUpdated: parsed.lastUpdated || new Date().toISOString(),
-    };
+    if (fs.existsSync(PLANNER_FILE)) {
+      const raw = fs.readFileSync(PLANNER_FILE, "utf8");
+      const parsed = JSON.parse(raw);
+      return {
+        budget: Array.isArray(parsed.budget) ? parsed.budget : initialBudgetItems,
+        programme: Array.isArray(parsed.programme) ? parsed.programme : initialProgramme,
+        settings: parsed.settings ? { ...initialEventSettings, ...parsed.settings } : initialEventSettings,
+        familyMembers: Array.isArray(parsed.familyMembers) ? parsed.familyMembers : initialFamilyMembers,
+        shopping: Array.isArray(parsed.shopping) ? parsed.shopping : initialShoppingList,
+        renovation: Array.isArray(parsed.renovation) ? parsed.renovation : initialRenovationItems,
+        vendors: Array.isArray(parsed.vendors) ? parsed.vendors : initialVendors,
+        lastUpdated: parsed.lastUpdated || new Date().toISOString(),
+      };
+    }
   } catch (err) {
-    console.error("Failed to read planner database file:", err);
-    return {
-      budget: initialBudgetItems,
-      programme: initialProgramme,
-      settings: initialEventSettings,
-      familyMembers: initialFamilyMembers,
-      shopping: initialShoppingList,
-      renovation: initialRenovationItems,
-      vendors: initialVendors,
-      lastUpdated: new Date().toISOString(),
-    };
+    console.warn("Could not read local planner file, using default seed data:", err);
   }
+
+  return {
+    budget: initialBudgetItems,
+    programme: initialProgramme,
+    settings: initialEventSettings,
+    familyMembers: initialFamilyMembers,
+    shopping: initialShoppingList,
+    renovation: initialRenovationItems,
+    vendors: initialVendors,
+    lastUpdated: new Date().toISOString(),
+  };
 }
 
 function saveLocalPlannerData(data: SharedPlannerData): void {
-  ensurePlannerFile();
+  // Never attempt file writes in serverless (e.g. Vercel) where filesystem is read-only
+  if (isServerless) return;
   try {
+    ensurePlannerFile();
     fs.writeFileSync(PLANNER_FILE, JSON.stringify(data, null, 2), "utf8");
-  } catch (err) {
-    console.error("Failed to write to planner database file:", err);
+  } catch {
+    // Read-only filesystem
   }
 }
 
@@ -117,20 +127,17 @@ export async function getPlannerData(): Promise<SharedPlannerData> {
         }
 
         const fallback = getLocalPlannerData();
-        const combined: SharedPlannerData = {
+        const resolvedMembers = storeMap.familyMembers || storeMap.members;
+        return {
           budget: Array.isArray(storeMap.budget) ? storeMap.budget : fallback.budget,
           programme: Array.isArray(storeMap.programme) ? storeMap.programme : fallback.programme,
           settings: storeMap.settings ? { ...fallback.settings, ...storeMap.settings } : fallback.settings,
-          familyMembers: Array.isArray(storeMap.familyMembers) ? storeMap.familyMembers : fallback.familyMembers,
+          familyMembers: Array.isArray(resolvedMembers) ? resolvedMembers : fallback.familyMembers,
           shopping: Array.isArray(storeMap.shopping) ? storeMap.shopping : fallback.shopping,
           renovation: Array.isArray(storeMap.renovation) ? storeMap.renovation : fallback.renovation,
           vendors: Array.isArray(storeMap.vendors) ? storeMap.vendors : fallback.vendors,
           lastUpdated: storeMap.lastUpdated || fallback.lastUpdated || new Date().toISOString(),
         };
-
-        // Cache locally
-        saveLocalPlannerData(combined);
-        return combined;
       }
     } catch (err) {
       console.error("Failed to query Neon PostgreSQL for planner data, falling back to local file:", err);
@@ -143,6 +150,7 @@ export async function getPlannerData(): Promise<SharedPlannerData> {
 export async function updatePlannerData(key: string, data: unknown): Promise<SharedPlannerData> {
   const now = new Date().toISOString();
   const sql = getDb();
+  const normalizedKey = key === "members" ? "familyMembers" : key;
 
   if (sql) {
     try {
@@ -150,10 +158,19 @@ export async function updatePlannerData(key: string, data: unknown): Promise<Sha
       const jsonVal = JSON.stringify(data);
       await sql`
         INSERT INTO planner_store (key, data, updated_at)
-        VALUES (${key}, ${jsonVal}::jsonb, NOW())
+        VALUES (${normalizedKey}, ${jsonVal}::jsonb, NOW())
         ON CONFLICT (key) DO UPDATE
         SET data = EXCLUDED.data, updated_at = NOW();
       `;
+
+      if (normalizedKey === "familyMembers") {
+        await sql`
+          INSERT INTO planner_store (key, data, updated_at)
+          VALUES ('members', ${jsonVal}::jsonb, NOW())
+          ON CONFLICT (key) DO UPDATE
+          SET data = EXCLUDED.data, updated_at = NOW();
+        `;
+      }
 
       await sql`
         INSERT INTO planner_store (key, data, updated_at)
@@ -166,11 +183,11 @@ export async function updatePlannerData(key: string, data: unknown): Promise<Sha
     }
   }
 
-  // Update local file cache
+  // Update local file cache in local development only
   const current = getLocalPlannerData();
   const updated: SharedPlannerData = {
     ...current,
-    [key]: data,
+    [normalizedKey]: data,
     lastUpdated: now,
   };
   saveLocalPlannerData(updated);

@@ -225,7 +225,7 @@ export const DashboardOverview: React.FC = () => {
             <div>
               <div className="flex justify-between text-xs mb-1.5">
                 <span className="text-slate-300 font-medium">
-                  Vendor & Procurement Disbursals (Total Due: ₦{(financialMetrics.totalAmountPaid + financialMetrics.totalBalanceDue).toLocaleString()})
+                  Purchases & Procurement Disbursals (Total Due: ₦{(financialMetrics.totalAmountPaid + financialMetrics.totalBalanceDue).toLocaleString()})
                 </span>
                 <span className="text-purple-300 font-bold font-mono">
                   ₦{financialMetrics.totalAmountPaid.toLocaleString()} paid

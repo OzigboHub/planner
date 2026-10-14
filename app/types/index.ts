@@ -8,7 +8,6 @@ export type DashboardSection =
   | "tasks"
   | "purchases"
   | "renovation"
-  | "vendors"
   | "programme"
   | "documents"
   | "approvals"

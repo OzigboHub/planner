@@ -343,12 +343,12 @@
       "day": "October 29th – Vigil Mass",
       "date": "Thursday, 29 October 2026",
       "time": "5:00 PM",
-      "notes": "Catholic Vigil Mass in preparation for the burial at the church premises.",
+      "notes": "Vigil Mass at St Matthew Catholic Church, Eidenu Irrua.",
       "order": 1,
       "status": "Confirmed",
       "activity": "Catholic Vigil Mass",
       "duration": "1.5 hours",
-      "location": "St. Matthew Catholic Church Premises, Eidenu, Irrua",
+      "location": "St Matthew Catholic Church, Eidenu Irrua",
       "coordinator": "Parish Liturgical Team",
       "publicVisible": true
     },
@@ -444,7 +444,7 @@
     "honoreeEpitaph": "I have fought the good fight, I have finished the race, I have kept the faith. (2 Timothy 4:7)",
     "date": "2026-10-30",
     "vigilDate": "2026-10-29",
-    "churchVenue": "St. Matthew Catholic Church, Eidenu, Irrua",
+    "churchVenue": "St Matthew Catholic Church, Eidenu Irrua",
     "churchAddress": "Directly opposite Udowo Primary School, Eidenu, Irrua, Edo State, Nigeria",
     "residenceVenue": "Akhabue Family Residence",
     "residenceAddress": "Akhabue Crescent, Eidenu, Irrua, Edo State, Nigeria",
@@ -579,7 +579,7 @@
       "status": "Active",
       "createdAt": "2026-10-01",
       "lastLogin": "2026-10-10 10:00",
-      "loginCode": "261030",
+      "loginCode": "849206",
       "permission": "view_and_edit",
       "assignedRole": "Executive Planning & Access Code Administration",
       "relationship": "Executive Committee Coordinator"
@@ -786,72 +786,6 @@
       "progressPercent": 0
     }
   ],
-  "vendors": [
-    {
-      "id": "v-01",
-      "notes": "Release clearance scheduled for 8:30 AM Oct 30 at Okito Mortuary, Eidenu.",
-      "phone": "+234 802 111 2233",
-      "balanceDue": 140000,
-      "vendorName": "Okito Mortuary, Eidenu",
-      "depositPaid": 100000,
-      "quotedAmount": 240000,
-      "bookingStatus": "Deposit Paid",
-      "contactPerson": "Okito Mortuary Superintendent",
-      "serviceCategory": "Mortuary & Preservation",
-      "confirmationDate": "2026-10-01"
-    },
-    {
-      "id": "v-02",
-      "notes": "Mercedes Executive Hearse with flower wreaths included.",
-      "phone": "+234 803 445 6677",
-      "balanceDue": 45000,
-      "vendorName": "Royal Way Hearse & Escort Services",
-      "depositPaid": 50000,
-      "quotedAmount": 95000,
-      "bookingStatus": "Confirmed",
-      "contactPerson": "Chief Andrew",
-      "serviceCategory": "Hearse & Motorcade",
-      "confirmationDate": "2026-10-03"
-    },
-    {
-      "id": "v-03",
-      "notes": "8 uniform casket bearers + 6-man brass fanfare unit.",
-      "phone": "+234 805 778 9900",
-      "balanceDue": 90000,
-      "vendorName": "St. Jude Catholic Brigade Corps",
-      "depositPaid": 90000,
-      "quotedAmount": 180000,
-      "bookingStatus": "Confirmed",
-      "contactPerson": "Capt. Francis Okoduwa",
-      "serviceCategory": "Casket Bearers & Brass Band",
-      "confirmationDate": "2026-10-04"
-    },
-    {
-      "id": "v-04",
-      "notes": "Combined quote covering 10 marquees, 600 chairs, 60 tables, and transport.",
-      "phone": "+234 806 332 1144",
-      "balanceDue": 210000,
-      "vendorName": "Irrua Grand Event Rentals",
-      "depositPaid": 225000,
-      "quotedAmount": 435000,
-      "bookingStatus": "Confirmed",
-      "contactPerson": "Mrs. Angela Akhigbe",
-      "serviceCategory": "Canopies & Furniture Rentals",
-      "confirmationDate": "2026-10-05"
-    },
-    {
-      "id": "v-05",
-      "notes": "Includes 40kVA generator backup with fuel allowance.",
-      "phone": "+234 813 998 7766",
-      "balanceDue": 75000,
-      "vendorName": "Pulse DJ & Sound Systems",
-      "depositPaid": 75000,
-      "quotedAmount": 150000,
-      "bookingStatus": "Confirmed",
-      "contactPerson": "DJ Stanley (Stan-Sound)",
-      "serviceCategory": "Sound & Generator Power",
-      "confirmationDate": "2026-10-06"
-    }
-  ],
+  "vendors": [],
   "lastUpdated": "2026-10-13T14:19:40.592Z"
 }

@@ -31,7 +31,7 @@ export const ShareInvitationModal: React.FC = () => {
 
   const inviteUrl = getInvitationUrl();
 
-  const invitationMessage = `🕊️ *In Loving Memory of ${settings.honoree}* (Aged 74 Years)\n\nThe Akhabue Family cordially invites you to the Funeral Ceremonies & Celebration of Life:\n\n📅 *Schedule of Arrangements:*\n• *Thursday, 29th October 2026 (5:00 PM):* Catholic Vigil Mass at St. Matthew Catholic Church premises\n• *Friday, 30th October 2026 (11:00 AM):* Funeral Mass at St. Matthew Catholic Church, followed by Interment (12:30 PM) & Reception until 6:30 PM at Akhabue Family Compound, Eidenu, Irrua\n\nKindly view the official order of ceremonies, directions, and leave tributes here:\n👉 ${inviteUrl}`;
+  const invitationMessage = `🕊️ *In Loving Memory of ${settings.honoree}* (Aged 74 Years)\n\nThe Akhabue Family cordially invites you to the Funeral Ceremonies & Celebration of Life:\n\n📅 *Schedule of Arrangements:*\n• *Thursday, 29th October 2026 (5:00 PM):* Vigil Mass at St Matthew Catholic Church, Eidenu Irrua\n• *Friday, 30th October 2026 (11:00 AM):* Funeral Mass at St Matthew Catholic Church, Eidenu Irrua, followed by Interment (12:30 PM) & Reception until 6:30 PM at Akhabue Family Compound, Eidenu, Irrua\n\nKindly view the official order of ceremonies, directions, and leave tributes here:\n👉 ${inviteUrl}`;
 
   const handleCopyLink = async () => {
     try {
@@ -79,7 +79,7 @@ export const ShareInvitationModal: React.FC = () => {
       try {
         await navigator.share({
           title: `In Loving Memory of ${settings.honoree}`,
-          text: `You are cordially invited to the Funeral Ceremonies for ${settings.honoree} in Eidenu, Irrua.`,
+          text: `You are cordially invited to the Funeral Ceremonies for ${settings.honoree}: Vigil Mass on Oct 29 at St Matthew Catholic Church, Eidenu Irrua, and Funeral Mass on Oct 30.`,
           url: inviteUrl,
         });
       } catch {
@@ -161,7 +161,7 @@ export const ShareInvitationModal: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1.5 truncate">
                     <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
-                    <span className="truncate">St. Matthew Catholic Church &amp; Akhabue Compound</span>
+                    <span className="truncate">St Matthew Catholic Church, Eidenu Irrua &amp; Akhabue Compound</span>
                   </div>
                 </div>
               </div>

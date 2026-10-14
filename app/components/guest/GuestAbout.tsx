@@ -12,7 +12,7 @@ export const GuestAbout: React.FC = () => {
       number: "01",
       title: "Devout Catholic Faith",
       description:
-        "A devout parishioner and dedicated elder at St. Matthew Catholic Church, Eidenu, Irrua. Known for his steadfast piety, active participation in parish life, and unfailing generosity to the church and clergy under Rev. Fr. Nicholas Oboh.",
+        "A devout parishioner and dedicated elder at St Matthew Catholic Church, Eidenu Irrua. Known for his steadfast piety, active participation in parish life, and unfailing generosity to the church and clergy under Rev. Fr. Nicholas Oboh.",
     },
     {
       number: "02",
@@ -85,7 +85,7 @@ export const GuestAbout: React.FC = () => {
               <strong>{settings.honoree}</strong> (aged 74) was an embodiment of grace, quiet strength, and devout Christian discipleship. Born in the vibrant community of <strong>Eidenu, Irrua</strong>, he lived an honorable life rooted in humility, unwavering hard work, and deep reverence for the Almighty.
             </p>
             <p className="text-sm text-slate-300 leading-relaxed">
-              Throughout his life in Edo State, Festus stood as an unshakeable moral compass. At <strong>St. Matthew Catholic Church</strong>, he was a regular communicant, a quiet benefactor of parish projects, and a trusted supporter of the clergy. In his family, he led not with words alone, but with the shining example of personal righteousness, self-sacrifice, and warm hospitality.
+              Throughout his life in Edo State, Festus stood as an unshakeable moral compass. At <strong>St Matthew Catholic Church</strong>, he was a regular communicant, a quiet benefactor of parish projects, and a trusted supporter of the clergy. In his family, he led not with words alone, but with the shining example of personal righteousness, self-sacrifice, and warm hospitality.
             </p>
             
             <div className="p-4 rounded-xl bg-amber-500/10 border-l-4 border-amber-400 text-slate-200 italic text-xs sm:text-sm">

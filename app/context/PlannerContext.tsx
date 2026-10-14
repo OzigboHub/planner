@@ -7,7 +7,6 @@ import {
   TaskItem,
   ShoppingItem,
   RenovationItem,
-  VendorItem,
   ProgrammeActivity,
   EventDocument,
   FamilyDecision,
@@ -28,7 +27,6 @@ import {
   initialShoppingList,
   initialRenovationItems,
   initialProgramme,
-  initialVendors,
   initialDocuments,
   initialFamilyDecisions,
   initialRSVPs,
@@ -74,7 +72,9 @@ interface PlannerContextType {
   updateFamilyMember: (id: string, updates: Partial<FamilyMember>) => void;
   deleteFamilyMember: (id: string) => void;
   updateMemberPermission: (memberId: string, permission: PermissionLevel) => boolean;
-  generateMemberCode: (name: string) => string;
+  generateMemberCode: (name?: string) => string;
+  adminPin: string;
+  updateAdminPin: (newPin: string) => boolean;
 
   // State
   settings: EventSettings;
@@ -85,7 +85,6 @@ interface PlannerContextType {
   shoppingList: ShoppingItem[];
   renovationItems: RenovationItem[];
   programme: ProgrammeActivity[];
-  vendors: VendorItem[];
   documents: EventDocument[];
   decisions: FamilyDecision[];
   rsvps: GuestRSVP[];
@@ -133,8 +132,6 @@ interface PlannerContextType {
   updateProgrammeItem: (id: string, updates: Partial<ProgrammeActivity>) => void;
   addProgrammeItem: (item: Omit<ProgrammeActivity, "id">) => void;
 
-  addVendor: (vendor: Omit<VendorItem, "id">) => void;
-  updateVendor: (id: string, updates: Partial<VendorItem>) => void;
 
   addRSVP: (rsvp: Omit<GuestRSVP, "id" | "submittedAt">) => void;
   addCondolence: (tribute: Omit<CondolenceTribute, "id" | "submittedAt">) => void;
@@ -168,7 +165,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(initialShoppingList);
   const [renovationItems, setRenovationItems] = useState<RenovationItem[]>(initialRenovationItems);
   const [programme, setProgramme] = useState<ProgrammeActivity[]>(initialProgramme);
-  const [vendors, setVendors] = useState<VendorItem[]>(initialVendors);
+  const [vendors, setVendors] = useState<unknown[]>([]);
   const [documents, setDocuments] = useState<EventDocument[]>(initialDocuments);
   const [decisions, setDecisions] = useState<FamilyDecision[]>(initialFamilyDecisions);
   const [rsvps, setRsvps] = useState<GuestRSVP[]>(initialRSVPs);
@@ -192,20 +189,17 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } catch {}
       });
 
-      const savedMembers = localStorage.getItem(STORAGE_PREFIX + "members");
+      const savedMembers = localStorage.getItem(STORAGE_PREFIX + "members") || localStorage.getItem(STORAGE_PREFIX + "familyMembers");
       if (savedMembers) {
-        const parsed = JSON.parse(savedMembers);
-        const needsRefresh =
-          !Array.isArray(parsed) ||
-          !parsed.some((m: FamilyMember) => m.loginCode === "261001") ||
-          !parsed.some((m: FamilyMember) => m.loginCode === "261030") ||
-          !parsed.some((m: FamilyMember) => m.loginCode === "261008") ||
-          !parsed.some((m: FamilyMember) => m.loginCode === "261009");
-        if (needsRefresh) {
+        try {
+          const parsed = JSON.parse(savedMembers);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setFamilyMembers(parsed);
+          } else {
+            setFamilyMembers(initialFamilyMembers);
+          }
+        } catch {
           setFamilyMembers(initialFamilyMembers);
-          localStorage.setItem(STORAGE_PREFIX + "members", JSON.stringify(initialFamilyMembers));
-        } else {
-          setFamilyMembers(parsed);
         }
       }
 
@@ -215,6 +209,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setSettings({
           ...initialEventSettings,
           ...parsed,
+          churchVenue: "St Matthew Catholic Church, Eidenu Irrua",
           honoree: "Late Mr. Festus Okoruwa Akhabue",
           honoreeAge: 74,
           vigilDate: "2026-10-29",
@@ -260,8 +255,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      const savedVendors = localStorage.getItem(STORAGE_PREFIX + "vendors");
-      if (savedVendors) setVendors(JSON.parse(savedVendors));
 
       const savedDecisions = localStorage.getItem(STORAGE_PREFIX + "decisions");
       if (savedDecisions) setDecisions(JSON.parse(savedDecisions));
@@ -272,19 +265,34 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const savedCond = localStorage.getItem(STORAGE_PREFIX + "condolences");
       if (savedCond) setCondolences(JSON.parse(savedCond));
 
-      // Check session storage for family login
-      const savedAuth = sessionStorage.getItem("akhabue_family_auth");
-      const savedMember = sessionStorage.getItem("akhabue_family_member");
-      const savedMemberId = sessionStorage.getItem("akhabue_family_member_id");
-      const savedPhone = sessionStorage.getItem("akhabue_family_member_phone");
-      const savedRole = sessionStorage.getItem("akhabue_family_role") as UserRole | null;
-      if (savedAuth === "true") {
+      // Restore 2-week persistent login from localStorage
+      const SESSION_EXPIRY_KEY = STORAGE_PREFIX + "session_expiry";
+      const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+      const savedAuth = localStorage.getItem("akhabue_family_auth");
+      const savedExpiry = localStorage.getItem(SESSION_EXPIRY_KEY);
+      const isExpired = !savedExpiry || Date.now() > parseInt(savedExpiry, 10);
+
+      if (savedAuth === "true" && !isExpired) {
+        const savedMember = localStorage.getItem("akhabue_family_member");
+        const savedMemberId = localStorage.getItem("akhabue_family_member_id");
+        const savedPhone = localStorage.getItem("akhabue_family_member_phone");
+        const savedRole = localStorage.getItem("akhabue_family_role") as UserRole | null;
         setIsFamilyAuthenticated(true);
         setAuthenticatedMember(savedMember || "Family Member");
         if (savedMemberId) setAuthenticatedMemberId(savedMemberId);
         if (savedPhone) setAuthenticatedPhone(savedPhone);
         if (savedRole) setUserRole(savedRole);
         setCurrentView("family");
+        // Refresh expiry on valid session restore
+        localStorage.setItem(SESSION_EXPIRY_KEY, String(Date.now() + TWO_WEEKS_MS));
+      } else if (isExpired && savedAuth === "true") {
+        // Clear stale session
+        localStorage.removeItem("akhabue_family_auth");
+        localStorage.removeItem("akhabue_family_member");
+        localStorage.removeItem("akhabue_family_member_id");
+        localStorage.removeItem("akhabue_family_member_phone");
+        localStorage.removeItem("akhabue_family_role");
+        localStorage.removeItem(SESSION_EXPIRY_KEY);
       }
 
       // Check if viewing via invitation link
@@ -372,9 +380,11 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           localStorage.setItem(STORAGE_PREFIX + "settings", JSON.stringify(d.settings));
         }
 
-        if (Array.isArray(d.familyMembers) && d.familyMembers.length > 0) {
-          setFamilyMembers(d.familyMembers);
-          localStorage.setItem(STORAGE_PREFIX + "members", JSON.stringify(d.familyMembers));
+        const serverMembers = d.familyMembers || d.members;
+        if (Array.isArray(serverMembers) && serverMembers.length > 0) {
+          setFamilyMembers(serverMembers);
+          localStorage.setItem(STORAGE_PREFIX + "members", JSON.stringify(serverMembers));
+          localStorage.setItem(STORAGE_PREFIX + "familyMembers", JSON.stringify(serverMembers));
         }
 
         if (Array.isArray(d.shopping)) {
@@ -386,7 +396,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         if (Array.isArray(d.vendors)) {
-          setVendors(d.vendors);
+          // vendors removed — ignore server vendor data
         }
       }
     } catch {
@@ -427,15 +437,22 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     lastSavedTimestampRef.current = Date.now();
     try {
       localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(data));
+      if (key === "members") {
+        localStorage.setItem(STORAGE_PREFIX + "familyMembers", JSON.stringify(data));
+      } else if (key === "familyMembers") {
+        localStorage.setItem(STORAGE_PREFIX + "members", JSON.stringify(data));
+      }
     } catch {
       // storage quota or error
     }
+
+    const payloadKey = key === "members" ? "familyMembers" : key;
 
     // Send immediately to central server so all other devices reflect the change
     fetch("/api/planner", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, data }),
+      body: JSON.stringify({ key: payloadKey, data }),
     }).catch((err) => {
       console.warn("Failed to sync change to server:", err);
     });
@@ -504,15 +521,16 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const activeMemberObj = familyMembers.find(
     (m) =>
       (authenticatedMemberId && m.id === authenticatedMemberId) ||
-      m.name === authenticatedMember
+      (authenticatedMember && m.name.toLowerCase() === authenticatedMember.toLowerCase()) ||
+      (authenticatedPhone && m.phone && m.phone.replace(/[^0-9]/g, "") === authenticatedPhone.replace(/[^0-9]/g, ""))
   );
 
   const isAdmin = userRole === "admin";
   const userPermission: PermissionLevel = isAdmin
     ? "view_and_edit"
-    : "view_only";
+    : activeMemberObj?.permission || "view_only";
 
-  const canEdit = isFamilyAuthenticated && isAdmin;
+  const canEdit = isFamilyAuthenticated && (isAdmin || userPermission === "view_and_edit");
 
   // Server/Context permission guards
   const guardEditPermission = (operation: string): boolean => {
@@ -752,25 +770,11 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
-  const addVendor = (vendor: Omit<VendorItem, "id">) => {
-    if (!guardEditPermission("addVendor")) return;
-    const newVendor: VendorItem = { ...vendor, id: "v-" + Date.now() };
-    setVendors((prev) => {
-      const next = [...prev, newVendor];
-      saveState("vendors", next);
-      return next;
-    });
-    addAudit("Vendor Added", `Registered vendor: ${newVendor.vendorName}`);
-  };
-
-  const updateVendor = (id: string, updates: Partial<VendorItem>) => {
-    if (!guardEditPermission("updateVendor")) return;
-    setVendors((prev) => {
-      const next = prev.map((v) => (v.id === id ? { ...v, ...updates } : v));
-      saveState("vendors", next);
-      return next;
-    });
-  };
+  // vendors removed — stubs retained for build compatibility
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const addVendor = (..._args: unknown[]) => {};
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const updateVendor = (..._args: unknown[]) => {};
 
   const addRSVP = (rsvp: Omit<GuestRSVP, "id" | "submittedAt">) => {
     const newRsvp: GuestRSVP = {
@@ -840,6 +844,42 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
+  const getAdminPin = (): string => {
+    const adminMember = familyMembers.find(
+      (m) =>
+        m.name === "Family Committee Admin" ||
+        m.assignedRole?.includes("Executive Planning") ||
+        m.id === "m-08"
+    );
+    if (adminMember && adminMember.loginCode) {
+      return adminMember.loginCode.trim().toUpperCase();
+    }
+    return (process.env.NEXT_PUBLIC_ADMIN_PIN || "849206").trim().toUpperCase();
+  };
+
+  const adminPin = getAdminPin();
+
+  const updateAdminPin = (newPin: string): boolean => {
+    if (!isAdmin) return false;
+    const cleanPin = newPin.trim().toUpperCase();
+    if (cleanPin.length < 4) return false;
+
+    setFamilyMembers((prev) => {
+      const next = prev.map((m) =>
+        m.name === "Family Committee Admin" ||
+        m.assignedRole?.includes("Executive Planning") ||
+        m.id === "m-08"
+          ? { ...m, loginCode: cleanPin }
+          : m
+      );
+      saveState("familyMembers", next);
+      return next;
+    });
+
+    addAudit("Admin PIN Updated", "Administrator master PIN updated securely");
+    return true;
+  };
+
   const updateMemberPermission = (memberId: string, permission: PermissionLevel): boolean => {
     if (!guardAdminPermission("updateMemberPermission")) return false;
 
@@ -848,7 +888,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setFamilyMembers((prev) => {
       const next = prev.map((m) => (m.id === memberId ? { ...m, permission } : m));
-      saveState("members", next);
+      saveState("familyMembers", next);
       return next;
     });
 
@@ -862,7 +902,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addFamilyMember = (member: Omit<FamilyMember, "id" | "createdAt">) => {
     const newMember: FamilyMember = {
       ...member,
-      permission: member.permission || "view_only", // Default permission for every child is View Only
+      permission: member.permission || "view_only",
       id: "m-" + Date.now(),
       createdAt: new Date().toISOString().substring(0, 10),
     };
@@ -873,7 +913,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           m.loginCode.toUpperCase() !== newMember.loginCode.toUpperCase()
       );
       const next = [newMember, ...filtered];
-      saveState("members", next);
+      saveState("familyMembers", next);
       return next;
     });
     addAudit(
@@ -885,7 +925,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateFamilyMember = (id: string, updates: Partial<FamilyMember>) => {
     setFamilyMembers((prev) => {
       const next = prev.map((m) => (m.id === id ? { ...m, ...updates } : m));
-      saveState("members", next);
+      saveState("familyMembers", next);
       return next;
     });
     addAudit("Member Updated", `Updated member profile / login code for ID ${id}`);
@@ -895,7 +935,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const target = familyMembers.find((m) => m.id === id);
     setFamilyMembers((prev) => {
       const next = prev.filter((m) => m.id !== id);
-      saveState("members", next);
+      saveState("familyMembers", next);
       return next;
     });
     addAudit(
@@ -916,6 +956,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanInputDigits = normalizeDigits(phoneInput);
     const rawCleanDigits = phoneInput.replace(/[^0-9]/g, "");
     const cleanCode = passcode.trim().toUpperCase();
+    const currentAdminPin = getAdminPin();
 
     if (!cleanCode) return false;
 
@@ -939,7 +980,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const codeMatches =
         m.loginCode.trim().toUpperCase() === cleanCode ||
         (m.loginCode === "261001" && cleanCode === "UWADE-2026") ||
-        (m.loginCode === "261030" && cleanCode === "ADMIN-2026");
+        ((m.id === "m-08" || m.name === "Family Committee Admin") && cleanCode === currentAdminPin);
       return phoneMatches && codeMatches;
     });
 
@@ -951,20 +992,24 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const isExecutive =
         matched.assignedRole?.includes("Executive") ||
-        matched.loginCode === "261030" ||
-        matched.loginCode === "ADMIN-2026";
+        matched.name === "Family Committee Admin" ||
+        matched.id === "m-08" ||
+        matched.loginCode.trim().toUpperCase() === currentAdminPin;
       setUserRole(isExecutive ? "admin" : "sibling");
 
       const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
       updateFamilyMember(matched.id, { lastLogin: nowStr });
 
+      const SESSION_EXPIRY_KEY = STORAGE_PREFIX + "session_expiry";
+      const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
       try {
-        sessionStorage.setItem("akhabue_family_auth", "true");
-        sessionStorage.setItem("akhabue_family_member", matched.name);
-        sessionStorage.setItem("akhabue_family_member_id", matched.id);
-        sessionStorage.setItem("akhabue_family_member_phone", matched.phone || phoneInput);
-        sessionStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
-        sessionStorage.setItem("akhabue_current_view", "family");
+        localStorage.setItem("akhabue_family_auth", "true");
+        localStorage.setItem("akhabue_family_member", matched.name);
+        localStorage.setItem("akhabue_family_member_id", matched.id);
+        localStorage.setItem("akhabue_family_member_phone", matched.phone || phoneInput);
+        localStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
+        localStorage.setItem("akhabue_current_view", "family");
+        localStorage.setItem(SESSION_EXPIRY_KEY, String(Date.now() + TWO_WEEKS_MS));
       } catch {}
 
       setCurrentView("family");
@@ -976,29 +1021,27 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return true;
     }
 
-    // Admin bypass also supported with phone input if master code
-    if (
-      cleanCode === "261030" ||
-      cleanCode === "261000" ||
-      cleanCode === "AKHABUE2026" ||
-      cleanCode === "2026" ||
-      cleanCode === "ADMIN-2026"
-    ) {
+    // Admin direct PIN login with phone field
+    if (cleanCode === currentAdminPin) {
       setIsFamilyAuthenticated(true);
       setAuthenticatedMember("Family Committee Admin");
-      setAuthenticatedMemberId("m-07");
+      setAuthenticatedMemberId("m-08");
       setUserRole("admin");
+      const SESSION_EXPIRY_KEY = STORAGE_PREFIX + "session_expiry";
+      const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
       try {
-        sessionStorage.setItem("akhabue_family_auth", "true");
-        sessionStorage.setItem("akhabue_family_member", "Family Committee Admin");
-        sessionStorage.setItem("akhabue_family_member_id", "m-07");
-        sessionStorage.setItem("akhabue_family_role", "admin");
+        localStorage.setItem("akhabue_family_auth", "true");
+        localStorage.setItem("akhabue_family_member", "Family Committee Admin");
+        localStorage.setItem("akhabue_family_member_id", "m-08");
+        localStorage.setItem("akhabue_family_role", "admin");
+        localStorage.setItem("akhabue_current_view", "family");
+        localStorage.setItem(SESSION_EXPIRY_KEY, String(Date.now() + TWO_WEEKS_MS));
       } catch {}
       setCurrentView("family");
       setIsAuthModalOpen(false);
       addAudit(
         "Admin Master Login",
-        `Admin logged in via bypass code (${cleanCode})`
+        "Admin logged in via Master Admin PIN"
       );
       return true;
     }
@@ -1009,6 +1052,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const loginFamily = (passcode: string, memberName?: string): boolean => {
     const clean = passcode.trim().toUpperCase();
     if (!clean) return false;
+    const currentAdminPin = getAdminPin();
 
     // 1. Direct match with a member's personalized loginCode
     const allCandidates = [...familyMembers];
@@ -1022,7 +1066,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       (m) =>
         m.loginCode.trim().toUpperCase() === clean ||
         (m.loginCode === "261001" && clean === "UWADE-2026") ||
-        (m.loginCode === "261030" && clean === "ADMIN-2026")
+        ((m.id === "m-08" || m.name === "Family Committee Admin") && clean === currentAdminPin)
     );
 
     if (matchedMember) {
@@ -1035,20 +1079,24 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const isExecutive =
         matchedMember.assignedRole?.includes("Executive") ||
-        matchedMember.loginCode === "261030" ||
-        matchedMember.loginCode === "ADMIN-2026";
+        matchedMember.name === "Family Committee Admin" ||
+        matchedMember.id === "m-08" ||
+        matchedMember.loginCode.trim().toUpperCase() === currentAdminPin;
       setUserRole(isExecutive ? "admin" : "sibling");
 
       // Record last login time
       const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
       updateFamilyMember(matchedMember.id, { lastLogin: nowStr });
 
+      const SESSION_EXPIRY_KEY = STORAGE_PREFIX + "session_expiry";
+      const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
       try {
-        sessionStorage.setItem("akhabue_family_auth", "true");
-        sessionStorage.setItem("akhabue_family_member", activeName);
-        sessionStorage.setItem("akhabue_family_member_id", matchedMember.id);
-        sessionStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
-        sessionStorage.setItem("akhabue_current_view", "family");
+        localStorage.setItem("akhabue_family_auth", "true");
+        localStorage.setItem("akhabue_family_member", activeName);
+        localStorage.setItem("akhabue_family_member_id", matchedMember.id);
+        localStorage.setItem("akhabue_family_role", isExecutive ? "admin" : "sibling");
+        localStorage.setItem("akhabue_current_view", "family");
+        localStorage.setItem(SESSION_EXPIRY_KEY, String(Date.now() + TWO_WEEKS_MS));
       } catch {}
       setCurrentView("family");
       setIsAuthModalOpen(false);
@@ -1059,32 +1107,28 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return true;
     }
 
-    // 2. Master passcodes for Admin & Committee emergency access
-    if (
-      clean === "261030" ||
-      clean === "261000" ||
-      clean === "AKHABUE2026" ||
-      clean === "2026" ||
-      clean === "AKHABUE" ||
-      clean === "1234" ||
-      clean === "ADMIN-2026"
-    ) {
+    // 2. Admin master PIN login
+    if (clean === currentAdminPin) {
       const activeName = memberName || "Family Committee Admin";
       setIsFamilyAuthenticated(true);
       setAuthenticatedMember(activeName);
-      setAuthenticatedMemberId("m-07");
+      setAuthenticatedMemberId("m-08");
       setUserRole("admin");
+      const SESSION_EXPIRY_KEY = STORAGE_PREFIX + "session_expiry";
+      const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
       try {
-        sessionStorage.setItem("akhabue_family_auth", "true");
-        sessionStorage.setItem("akhabue_family_member", activeName);
-        sessionStorage.setItem("akhabue_family_member_id", "m-07");
-        sessionStorage.setItem("akhabue_family_role", "admin");
+        localStorage.setItem("akhabue_family_auth", "true");
+        localStorage.setItem("akhabue_family_member", activeName);
+        localStorage.setItem("akhabue_family_member_id", "m-08");
+        localStorage.setItem("akhabue_family_role", "admin");
+        localStorage.setItem("akhabue_current_view", "family");
+        localStorage.setItem(SESSION_EXPIRY_KEY, String(Date.now() + TWO_WEEKS_MS));
       } catch {}
       setCurrentView("family");
       setIsAuthModalOpen(false);
       addAudit(
-        "Admin / Committee Login",
-        `${activeName} logged in with master bypass code`
+        "Admin Master Login",
+        `${activeName} logged in with Master Admin PIN`
       );
       return true;
     }
@@ -1099,11 +1143,12 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setAuthenticatedPhone(null);
     setUserRole("sibling");
     try {
-      sessionStorage.removeItem("akhabue_family_auth");
-      sessionStorage.removeItem("akhabue_family_member");
-      sessionStorage.removeItem("akhabue_family_member_id");
-      sessionStorage.removeItem("akhabue_family_member_phone");
-      sessionStorage.removeItem("akhabue_family_role");
+      localStorage.removeItem("akhabue_family_auth");
+      localStorage.removeItem("akhabue_family_member");
+      localStorage.removeItem("akhabue_family_member_id");
+      localStorage.removeItem("akhabue_family_member_phone");
+      localStorage.removeItem("akhabue_family_role");
+      localStorage.removeItem(STORAGE_PREFIX + "session_expiry");
     } catch {}
     setCurrentView("guest");
     addAudit("Family Member Logout", "Session locked and returned to guest view");
@@ -1125,7 +1170,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setShoppingList(initialShoppingList);
     setRenovationItems(initialRenovationItems);
     setProgramme(initialProgramme);
-    setVendors(initialVendors);
     setDocuments(initialDocuments);
     setDecisions(initialFamilyDecisions);
     setRsvps(initialRSVPs);
@@ -1170,6 +1214,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         deleteFamilyMember,
         updateMemberPermission,
         generateMemberCode,
+        adminPin,
+        updateAdminPin,
         settings,
         updateSettings,
         budgetItems,
@@ -1178,7 +1224,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         shoppingList,
         renovationItems,
         programme,
-        vendors,
         documents,
         decisions,
         rsvps,
@@ -1201,8 +1246,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addRenovationItem,
         updateProgrammeItem,
         addProgrammeItem,
-        addVendor,
-        updateVendor,
         addRSVP,
         addCondolence,
         updateDecision,

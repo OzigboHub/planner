@@ -27,6 +27,9 @@ import {
   Calendar,
   Sparkles,
   ArrowRight,
+  KeyRound,
+  RefreshCw,
+  Edit3,
 } from "lucide-react";
 
 export const SimplePlannerView: React.FC = () => {
@@ -41,7 +44,12 @@ export const SimplePlannerView: React.FC = () => {
     authenticatedMember,
     familyMembers,
     addFamilyMember,
+    updateFamilyMember,
     deleteFamilyMember,
+    updateMemberPermission,
+    generateMemberCode,
+    adminPin,
+    updateAdminPin,
     settings,
     getInvitationUrl,
     userRole,
@@ -152,7 +160,7 @@ export const SimplePlannerView: React.FC = () => {
 
   const handleOpenAddModal = () => {
     if (!isAdmin && !canEdit) {
-      alert("Only authorized Family Admins can add planning items.");
+      alert("Only authorized Family Admins or authorized coordinators can add planning items.");
       return;
     }
     setEditingItem(null);
@@ -240,7 +248,7 @@ export const SimplePlannerView: React.FC = () => {
     if (!newChildName.trim()) return;
 
     const cleanName = newChildName.trim();
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = generateMemberCode(cleanName);
 
     addFamilyMember({
       name: cleanName,
@@ -252,10 +260,13 @@ export const SimplePlannerView: React.FC = () => {
       notes: "Registered child with view-only planning access.",
     });
 
-    setSuccessMessage(`Child onboarded! 6-Digit Access PIN: ${code}`);
+    // Alert admin about the PIN (without it disappearing)
+    alert(`Child "${cleanName}" has been onboarded successfully.\n\nTheir 6-digit Access PIN is ready — you can copy it from the list below.`);
+
+    setSuccessMessage(`✓ ${cleanName} onboarded! Copy their PIN from the list below.`);
     setNewChildName("");
     setNewChildPhone("");
-    setTimeout(() => setSuccessMessage(null), 5000);
+    setTimeout(() => setSuccessMessage(null), 8000);
   };
 
   const copyChildInvite = (child: FamilyMember) => {
@@ -285,7 +296,7 @@ export const SimplePlannerView: React.FC = () => {
             </span>
             <span className="text-slate-600 hidden sm:inline">•</span>
             <span className="text-[10px] text-slate-400 truncate max-w-full">
-              St. Matthew Catholic Church &amp; Akhabue Compound
+              St Matthew Catholic Church, Eidenu Irrua &amp; Akhabue Compound
             </span>
           </div>
           <h2 className="text-lg sm:text-2xl font-bold text-white tracking-tight">
@@ -298,23 +309,23 @@ export const SimplePlannerView: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 flex-wrap">
+          {(isAdmin || canEdit) && (
+            <button
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-amber-500/20"
+            >
+              <Plus className="w-4 h-4 shrink-0" />
+              <span>Add Item</span>
+            </button>
+          )}
           {isAdmin && (
-            <>
-              <button
-                onClick={handleOpenAddModal}
-                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-amber-500/20"
-              >
-                <Plus className="w-4 h-4 shrink-0" />
-                <span>Add Item</span>
-              </button>
-              <button
-                onClick={() => setIsChildrenModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20"
-              >
-                <Users className="w-4 h-4 shrink-0" />
-                <span>Children ({familyMembers.length})</span>
-              </button>
-            </>
+            <button
+              onClick={() => setIsChildrenModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20"
+            >
+              <Users className="w-4 h-4 shrink-0" />
+              <span>Children ({familyMembers.length})</span>
+            </button>
           )}
 
           <button
@@ -333,22 +344,30 @@ export const SimplePlannerView: React.FC = () => {
         className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border flex items-center gap-2 text-xs ${
           isAdmin
             ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-300"
+            : canEdit
+            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
             : "bg-amber-500/10 border-amber-500/30 text-amber-300"
         }`}
       >
         {isAdmin ? (
           <ShieldCheck className="w-4 h-4 text-indigo-400 shrink-0" />
+        ) : canEdit ? (
+          <Edit3 className="w-4 h-4 text-emerald-400 shrink-0" />
         ) : (
           <Lock className="w-4 h-4 text-amber-400 shrink-0" />
         )}
         <span className="leading-snug">
           {isAdmin ? (
             <>
-              <strong>Administrator Access:</strong> Only you can put amounts, update expenses, and tick what has been done.
+              <strong>Administrator Access:</strong> You can add items, update expenses, and tick what has been done.
+            </>
+          ) : canEdit ? (
+            <>
+              <strong>Edit Authorized ({authenticatedMember || "Family Member"}):</strong> You can add and edit planning items. Contact the administrator to adjust your access level.
             </>
           ) : (
             <>
-              <strong>View-Only Child Access ({authenticatedMember || "Family Member"}):</strong> You can inspect the checklist and balances. Only the Administrator can input amounts or modify items.
+              <strong>View-Only Access ({authenticatedMember || "Family Member"}):</strong> You can inspect the checklist and balances. Only authorized coordinators can modify items.
             </>
           )}
         </span>
@@ -616,8 +635,8 @@ export const SimplePlannerView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Admin Item Actions (Edit / Delete) */}
-                {isAdmin && (
+                {/* Admin / Coordinator Item Actions (Edit / Delete) */}
+                {(isAdmin || canEdit) && (
                   <div className="flex items-center gap-1 mt-1 justify-end">
                     <button
                       onClick={() => handleOpenEditModal(item)}
@@ -626,13 +645,15 @@ export const SimplePlannerView: React.FC = () => {
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
-                    <button
-                      onClick={() => handleDeleteItem(item.id, item.name)}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 text-xs transition-colors"
-                      title="Delete item"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteItem(item.id, item.name)}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 text-xs transition-colors"
+                        title="Delete item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -886,67 +907,102 @@ export const SimplePlannerView: React.FC = () => {
                 {familyMembers.map((member) => (
                   <div
                     key={member.id}
-                    className="p-3 rounded-xl bg-slate-950 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                    className="p-3 rounded-xl bg-slate-950 border border-white/5 flex flex-col gap-2.5"
                   >
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-white">{member.name}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-300 font-semibold border border-amber-400/20">
-                          {member.permission === "view_and_edit" ? "Edit Authorized" : "View-Only"}
-                        </span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-white">{member.name}</span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                              member.permission === "view_and_edit"
+                                ? "bg-emerald-400/10 text-emerald-300 border-emerald-400/20"
+                                : "bg-amber-400/10 text-amber-300 border-amber-400/20"
+                            }`}
+                          >
+                            {member.permission === "view_and_edit" ? "✓ Edit Authorized" : "View-Only"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                          <Phone className="w-3 h-3 text-slate-500 shrink-0" />
+                          <span>{member.phone || "No phone registered"}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
-                        <Phone className="w-3 h-3 text-slate-500 shrink-0" />
-                        <span>{member.phone || "No phone registered"}</span>
+
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 font-mono text-xs font-bold text-amber-400 tracking-wider">
+                          {member.loginCode}
+                        </div>
+
+                        <button
+                          onClick={() => copyChildInvite(member)}
+                          className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1 transition-colors"
+                          title="Copy Invitation message"
+                        >
+                          {copiedCodeId === member.id ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-400" />
+                              <span className="text-emerald-400 text-[10px]">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span className="text-[10px]">Copy</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() => shareChildWhatsApp(member)}
+                          className="px-2 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-medium flex items-center gap-1 transition-colors"
+                          title="Share on WhatsApp"
+                        >
+                          <Share2 className="w-3 h-3" />
+                          <span className="text-[10px]">WhatsApp</span>
+                        </button>
+
+                        {isAdmin && member.name !== "Family Committee Admin" && (
+                          <button
+                            onClick={() => {
+                              if (confirm(`Remove ${member.name}?`)) {
+                                deleteFamilyMember(member.id);
+                              }
+                            }}
+                            className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="Remove child"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <div className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 font-mono text-xs font-bold text-amber-400 tracking-wider">
-                        {member.loginCode}
-                      </div>
-
-                      <button
-                        onClick={() => copyChildInvite(member)}
-                        className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1 transition-colors"
-                        title="Copy Invitation message"
-                      >
-                        {copiedCodeId === member.id ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-400" />
-                            <span className="text-emerald-400 text-[10px]">Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span className="text-[10px]">Copy</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => shareChildWhatsApp(member)}
-                        className="px-2 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-medium flex items-center gap-1 transition-colors"
-                        title="Share on WhatsApp"
-                      >
-                        <Share2 className="w-3 h-3" />
-                        <span className="text-[10px]">WhatsApp</span>
-                      </button>
-
-                      {isAdmin && member.name !== "Family Committee Admin" && (
+                    {/* Permission Toggle — Admin Only */}
+                    {isAdmin && member.name !== "Family Committee Admin" && (
+                      <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                        <span className="text-[11px] text-slate-400">
+                          {member.permission === "view_and_edit"
+                            ? "This member can add and edit planning items."
+                            : "This member can only view the checklist."}
+                        </span>
                         <button
                           onClick={() => {
-                            if (confirm(`Remove ${member.name}?`)) {
-                              deleteFamilyMember(member.id);
+                            const newPerm = member.permission === "view_and_edit" ? "view_only" : "view_and_edit";
+                            const label = newPerm === "view_and_edit" ? "Edit Authorized" : "View-Only";
+                            if (updateMemberPermission(member.id, newPerm)) {
+                              alert(`${member.name}'s access has been updated to: ${label}.`);
                             }
                           }}
-                          className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                          title="Remove child"
+                          className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                            member.permission === "view_and_edit"
+                              ? "bg-rose-500/10 border-rose-500/30 text-rose-300 hover:bg-rose-500/20"
+                              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20"
+                          }`}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          {member.permission === "view_and_edit" ? "Revoke Edit Access" : "Grant Edit Access"}
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

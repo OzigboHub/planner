@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3005"),
   title: "In Loving Memory of Late Mr. Festus Okoruwa Akhabue (Aged 74) | Funeral & Celebration of Life",
   description:
-    "Official Invitation & Programme: Catholic Vigil Mass, Funeral Mass, Interment & Reception for Late Mr. Festus Okoruwa Akhabue (Aged 74). 29th & 30th October 2026 at St. Matthew Catholic Church and Akhabue Residence, Eidenu, Irrua, Edo State.",
+    "Official Invitation & Programme: Catholic Vigil Mass, Funeral Mass, Interment & Reception for Late Mr. Festus Okoruwa Akhabue (Aged 74). 29th & 30th October 2026 at St Matthew Catholic Church, Eidenu Irrua and Akhabue Residence, Eidenu, Irrua, Edo State.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "In Loving Memory of Late Mr. Festus Okoruwa Akhabue (Aged 74) | Funeral & Celebration of Life",
     description:
-      "The Akhabue Family cordially invites you to the Catholic Vigil Mass, Funeral Mass, Interment & Reception Ceremony in Eidenu, Irrua, Edo State on 29th & 30th October 2026.",
+      "The Akhabue Family cordially invites you to the Catholic Vigil Mass at St Matthew Catholic Church, Eidenu Irrua, and Funeral Mass, Interment & Reception on 29th & 30th October 2026.",
     url: "/invite",
     siteName: "Late Mr. Festus Okoruwa Akhabue Memorial",
     images: [

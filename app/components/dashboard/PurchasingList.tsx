@@ -104,7 +104,7 @@ export const PurchasingList: React.FC = () => {
         </div>
 
         <div className="bg-slate-900/90 p-4 rounded-2xl border border-emerald-500/20">
-          <p className="text-[11px] font-semibold text-emerald-400 uppercase">Amount Paid to Vendors</p>
+          <p className="text-[11px] font-semibold text-emerald-400 uppercase">Amount Paid for Purchases</p>
           <p className="text-xl font-black text-emerald-400 font-mono mt-1">
             ₦{totalSpent.toLocaleString()}
           </p>

@@ -10,7 +10,6 @@ import {
   CheckSquare,
   ShoppingBag,
   Home,
-  Truck,
   CalendarDays,
   FileCheck2,
   FileSpreadsheet,
@@ -61,7 +60,6 @@ export const DashboardNav: React.FC = () => {
       badge: "₦500k",
       badgeColor: "bg-purple-500/20 text-purple-300",
     },
-    { id: "vendors", label: "Vendor Directory", icon: Truck },
     { id: "programme", label: "Burial Programme", icon: CalendarDays },
     { id: "documents", label: "Receipts & Vault", icon: FileText },
     {
